@@ -1,0 +1,19 @@
+language: rust
+sudo: false
+cache: cargo
+rust:
+  - stable
+  - beta
+  - nightly
+env:
+  - RUSTFLAGS="-D warnings"
+os:
+  - linux
+  - osx
+branches:
+  only:
+    - master
+    - dev
+script:
+  - cargo build -v
+  - cargo doc

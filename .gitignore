@@ -1,0 +1,6 @@
+/target
+*.notes
+**/.DS_Store
+test
+/*.jpg
+/*.png
