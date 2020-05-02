@@ -83,7 +83,7 @@ would be replacing the color groups we'd calculate using `-k 4` as in Example 1.
 ![Tree and sky](gfx/flowers.jpg) ![Hanging lanterns](gfx/lanterns.jpg)
 
 We can transfer the average colors of the left image to the lanterns on the
-right. Running the following command prints the 8 colors below in order from
+right. Running the following command prints the 12 colors below in order from
 darkest to lightest.
 
 ```
