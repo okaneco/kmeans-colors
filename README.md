@@ -20,7 +20,7 @@ binarization, line extraction, and "color style" transfer.
 
 ### 1) Basic usage
 ```
-kmeans_colors gfx/ferris.jpg -k 2 -r 3 -o pink2
+kmeans_colors gfx/pink.jpg -k 2 -r 3 -o pink2
 ```
 ![Animation of flowers](gfx/pink.gif)
 
@@ -110,7 +110,7 @@ Passing the same colors without `--replace` results in the image below, which
 colors the pixels with the closest color found in the list we supplied.
 
 ```
-kmeans_colors find -i lanterns.jpg -c 492f38,6c363e,8d444e,ae525b,8c6779,677a9b,
+kmeans_colors find -i gfx/lanterns.jpg -c 492f38,6c363e,8d444e,ae525b,8c6779,677a9b,
 b87078,4b95bb,a499b0,d7969d,e3b8c0,c5c6da
 ```
 
