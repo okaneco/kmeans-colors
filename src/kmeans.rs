@@ -5,10 +5,8 @@ use rand::{Rng, SeedableRng};
 pub struct KmeansLab {
     /// Sum of squares distance metric for centroids compared to old centroids.
     pub score: f32,
-
     /// Colors determined to be centroids of input buffer.
     pub centroids: Vec<Lab>,
-
     /// Buffer of pixels indexed to centroids.
     pub indices: Vec<u8>,
 }
@@ -27,10 +25,8 @@ impl KmeansLab {
 pub struct KmeansRgb {
     /// Sum of squares distance metric for centroids compared to old centroids.
     pub score: f32,
-
     /// Colors determined to be centroids of input buffer.
     pub centroids: Vec<Srgb>,
-
     /// Buffer of pixels indexed to centroids.
     pub indices: Vec<u8>,
 }

@@ -15,5 +15,6 @@ branches:
     - master
     - dev
 script:
-  - cargo build -v
-  - cargo doc
+  - cargo build -v --lib --no-default-features
+  - cargo build -v --bins
+  - cargo doc --no-deps

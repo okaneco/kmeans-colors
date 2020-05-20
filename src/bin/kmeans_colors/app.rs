@@ -3,14 +3,14 @@ use std::path::PathBuf;
 
 use palette::{Lab, Pixel, Srgb};
 
-use super::args::Opt;
-use super::filename::create_filename;
-use super::kmeans::{
+use crate::args::Opt;
+use crate::filename::create_filename;
+use crate::utils::{parse_color, print_colors_lab, print_colors_rgb, save_image};
+use kmeans_colors::{
     get_closest_centroid_lab, get_closest_centroid_rgb, get_kmeans_lab, get_kmeans_rgb,
-    map_indices_to_colors_lab, map_indices_to_colors_rgb, KmeansLab, KmeansRgb,
+    map_indices_to_colors_lab, map_indices_to_colors_rgb, sort_indexed_colors_lab,
+    sort_indexed_colors_rgb, KmeansLab, KmeansRgb,
 };
-use super::sort::{sort_indexed_colors_lab, sort_indexed_colors_rgb};
-use super::utils::{parse_color, print_colors_lab, print_colors_rgb, save_image};
 
 pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
     if opt.input.len() == 0 {

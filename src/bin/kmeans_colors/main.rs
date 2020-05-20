@@ -1,10 +1,16 @@
+mod app;
+mod args;
+mod err;
+mod filename;
+mod utils;
+
 use std::error::Error;
 use std::process;
 
 use structopt::StructOpt;
 
-mod lib;
-use lib::{find_colors, run, Command, Opt};
+use app::{find_colors, run};
+use args::{Command, Opt};
 
 fn main() {
     if let Err(e) = try_main() {
