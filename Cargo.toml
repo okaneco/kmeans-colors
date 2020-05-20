@@ -13,21 +13,18 @@ keywords = ["kmeans", "clustering", "lab", "color", "rgb"]
 categories = ["graphics", "multimedia::images", "mathematics"]
 license = "MIT OR Apache-2.0"
 
-[lib]
-name = "kmeans_colors_lib"
-path = "src/lib/mod.rs"
+[features]
+# Use default-features=false if using as a library
+default = ["app"]
 
-[[bin]]
-name = "kmeans_colors"
-path = "src/main.rs"
-
-[dependencies]
-structopt = { version = "0.3", default-features = false }
+# Features required for building the binary
+app = ["image", "png", "structopt"]
 
 [dependencies.image]
 version = "0.23"
 default-features = false
 features = ["jpeg", "png"]
+optional = true
 
 [dependencies.palette]
 version = "0.5"
@@ -38,6 +35,7 @@ features = ["std"]
 version = "0.16"
 default-features = false
 features = ["png-encoding"]
+optional = true
 
 [dependencies.rand]
 version = "0.7"
@@ -47,6 +45,11 @@ features = ["std"]
 [dependencies.rand_chacha]
 version = "0.2"
 default-features = false
+
+[dependencies.structopt]
+version = "0.3"
+default-features = false
+optional = true
 
 [profile.release]
 lto = "thin"

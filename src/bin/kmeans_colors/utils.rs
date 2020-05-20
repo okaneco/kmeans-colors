@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use palette::{Lab, Srgb};
 
-use super::CliError;
+use crate::err::CliError;
 
 /// Parse hex string to Rgb color.
 pub fn parse_color(c: &str) -> Result<Srgb<u8>, CliError> {
