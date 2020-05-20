@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use palette::luma::Luma;
 use palette::{Lab, Srgb};
 
-/// Sorts the centroids by Luminosity and calculates the percentage of each
-/// color in the image. Returns both of those results and the index
-/// of that element in a tuple.
+/// Sorts the Lab centroids by luminosity and calculates the percentage of each
+/// color in the buffer. Returns a vector of tuples sorted from darkest to
+/// lightest holding a centroid, its percentage, and the index of the centroid.
 pub fn sort_indexed_colors_lab(centroids: &Vec<Lab>, indices: &[u8]) -> Vec<(Lab, f32, u8)> {
     // Count occurences of each color - "histogram"
     let mut map: HashMap<u8, u32> = HashMap::new();
@@ -56,9 +56,9 @@ pub fn sort_indexed_colors_lab(centroids: &Vec<Lab>, indices: &[u8]) -> Vec<(Lab
         .collect()
 }
 
-/// Sorts the centroids by Luminosity and calculates the percentage of each
-/// color in the image. Returns both of those results and the index
-/// of that element in a tuple.
+/// Sorts the RGB centroids by luminosity and calculates the percentage of each
+/// color in the buffer. Returns a vector of tuples sorted from darkest to
+/// lightest holding a centroid, its percentage, and the index of the centroid.
 pub fn sort_indexed_colors_rgb(centroids: &[Srgb], indices: &[u8]) -> Vec<(Srgb, f32, u8)> {
     // Count occurences of each color - "histogram"
     let mut map: HashMap<u8, u32> = HashMap::new();

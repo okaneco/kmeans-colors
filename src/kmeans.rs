@@ -21,7 +21,7 @@ impl KmeansLab {
     }
 }
 
-/// Result of k-means operation in Rgb space.
+/// Result of k-means operation in RGB space.
 pub struct KmeansRgb {
     /// Sum of squares distance metric for centroids compared to old centroids.
     pub score: f32,
@@ -41,7 +41,22 @@ impl KmeansRgb {
     }
 }
 
-/// Find k-means colors of an image in Lab space.
+/// Find the k-means colors of a buffer in Lab space. `max_iter` and `converge`
+/// are useed together to determine when the k-means calculation has converged.
+/// When the `score` is less than `converge` or the number of iterations reaches
+/// `max_iter`, the calculation is complete.
+///
+/// `k`: number of clusters.
+///
+/// `max_iter`: maximum number of iterations.
+///
+/// `converge`: threshold for convergence.
+///
+/// `verbose`: flag for printing convergence information to console.
+///
+/// `lab`: array of `Lab` colors.
+///
+/// `seed`: seed for the random number generator.
 pub fn get_kmeans_lab(
     k: u8,
     max_iter: usize,
@@ -178,7 +193,7 @@ pub fn diff_colors_lab(c1: &Lab, c2: &Lab) -> f32 {
     (c1.b - c2.b) * (c1.b - c2.b)
 }
 
-/// Map pixel indices to centroid colors for output from Lab to Srgb.
+/// Map pixel indices to centroid colors for output as an Srgb `u8` buffer.
 pub fn map_indices_to_colors_lab(centroids: &[Lab], indices: &[u8]) -> Vec<u8> {
     let srgb: Vec<Srgb<u8>> = indices
         .iter()
@@ -193,7 +208,22 @@ pub fn map_indices_to_colors_lab(centroids: &[Lab], indices: &[u8]) -> Vec<u8> {
     Srgb::into_raw_slice(&srgb).to_vec()
 }
 
-/// Find k-means colors of an image in Rgb space.
+/// Find the k-means colors of a buffer in RGB space. `max_iter` and `converge`
+/// are useed together to determine when the k-means calculation has converged.
+/// When the `score` is less than `converge` or the number of iterations reaches
+/// `max_iter`, the calculation is complete.
+///
+/// `k`: number of clusters.
+///
+/// `max_iter`: maximum number of iterations.
+///
+/// `converge`: threshold for convergence.
+///
+/// `verbose`: flag for printing convergence information to console.
+///
+/// `rgb`: array of `Srgb` colors.
+///
+/// `seed`: seed for the random number generator.
 pub fn get_kmeans_rgb(
     k: u8,
     max_iter: usize,
@@ -246,7 +276,7 @@ pub fn get_kmeans_rgb(
     }
 }
 
-/// Find a pixel's nearest centroid color in Rgb, index the pixel with that
+/// Find a pixel's nearest centroid color in RGB, index the pixel with that
 /// centroid.
 pub fn get_closest_centroid_rgb(rgb: &[Srgb], centroids: &[Srgb], indices: &mut Vec<u8>) {
     for color in rgb.iter() {
@@ -265,7 +295,7 @@ pub fn get_closest_centroid_rgb(rgb: &[Srgb], centroids: &[Srgb], indices: &mut 
 }
 
 /// Find the new centroid locations based on the average of the colors that
-/// correspond to the centroid in Rgb. If no colors correspond, the centroid is
+/// correspond to the centroid in RGB. If no colors correspond, the centroid is
 /// re-initialized with a random color.
 pub fn recalculate_centroids_rgb(
     mut rng: &mut impl Rng,
@@ -313,12 +343,12 @@ pub fn check_loop_rgb(centroids: &[Srgb], old_centroids: &[Srgb]) -> f32 {
     red * red + green * green + blue * blue
 }
 
-/// Generate random Rgb color.
+/// Generate random RGB color.
 pub fn create_random_rgb(rng: &mut impl Rng) -> Srgb {
     Srgb::new(rng.gen(), rng.gen(), rng.gen())
 }
 
-/// Calculate the geometric distance between two Rgb colors, the square root is
+/// Calculate the geometric distance between two RGB colors, the square root is
 /// omitted.
 pub fn diff_colors_rgb(c1: &Srgb, c2: &Srgb) -> f32 {
     (c1.red - c2.red) * (c1.red - c2.red)
@@ -326,7 +356,7 @@ pub fn diff_colors_rgb(c1: &Srgb, c2: &Srgb) -> f32 {
         + (c1.blue - c2.blue) * (c1.blue - c2.blue)
 }
 
-/// Map pixel indices to centroid colors for output in Srgb.
+/// Map pixel indices to centroid colors for output as an Srgb `u8` buffer.
 pub fn map_indices_to_colors_rgb(centroids: &[Srgb], indices: &[u8]) -> Vec<u8> {
     let srgb: Vec<Srgb<u8>> = indices
         .iter()

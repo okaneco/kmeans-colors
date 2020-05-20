@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/kmeans-colors.svg)](https://crates.io/crates/kmeans-colors)
 
 Calculate the `k` average colors in an image using k-means clustering. The
-crate can also be used as a library.
+crate is available in binary and library form.
 
 k-means clustering works by starting with an initial random guess of the `k`
 number of colors in the image called `centroids`. For each step, every pixel in

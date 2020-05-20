@@ -17,4 +17,5 @@ branches:
 script:
   - cargo build -v --lib --no-default-features
   - cargo build -v --bins
+  - cargo test --doc
   - cargo doc --no-deps
