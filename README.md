@@ -1,9 +1,9 @@
 # kmeans-colors
 [![Build Status](https://travis-ci.com/okaneco/kmeans-colors.svg?branch=master)](https://travis-ci.com/okaneco/kmeans-colors)
 [![Crates.io](https://img.shields.io/crates/v/kmeans-colors.svg)](https://crates.io/crates/kmeans-colors)
+[![Docs.rs](https://docs.rs/kmeans_colors/badge.svg)](https://docs.rs/kmeans_colors)
 
-Calculate the `k` average colors in an image using k-means clustering. The
-crate is available in binary and library form.
+Calculate the `k` average colors in an image using k-means clustering.
 
 k-means clustering works by starting with an initial random guess of the `k`
 number of colors in the image called `centroids`. For each step, every pixel in
@@ -12,24 +12,47 @@ the centroids calculate the average of all the colors close to them and move to
 that color. This process repeats until the centroids stop moving or the maximum
 step count is reached.
 
-The k-means can be used to get a sense of the dominant colors in an image, like
-a color palette of the average colors in an image. Some other applications are
-binarization, line extraction, and "color style" transfer.
+The k-means can be used to find the dominant colors or color palette of an
+image. Some other applications are binarization, line extraction, and "color
+style" transfer.
 
 ## Examples
 
 ### 1) Basic usage
 ```
-kmeans_colors gfx/pink.jpg -k 2 -r 3 -o pink2
+kmeans_colors -i gfx/pink.jpg -k 2 -r 3 -o pink2
 ```
 ![Animation of flowers](gfx/pink.gif)
 
 The animation is a composite of k=2 to k=9 k-means with the following command.
 `-k` is the number of colors to find in the image. `-r` is the amount of runs
 to perform, `-o` specifies the output. By default, the images will save as .png
-files. `-o` flag is optional.  
+files. `-o` flag is optional.
 
-### 2) The `find` subcommand
+### 2) Color palettes
+
+```
+kmeans_colors -i lanterns.jpg --no-file --palette
+```
+![Red color palette](gfx/lanterns-lab-8.png)
+
+```
+kmeans_colors -i pink.jpg --no-file --palette --proportional
+```
+![Green and red color palette](gfx/pink-lab-8.png)
+```
+kmeans_colors -i flowers.jpg --no-file --palette --proportional --sort
+```
+![Blue and pink proportional color palette](gfx/flowers-lab-8.png)
+
+By default, palettes will be composed of equal swatches. Passing
+`--proportional` will scale the swatches proportionally to their presence in the
+image. The default sorting method is from darkest to lightest, passing `--sort`
+will rearrange the palette in order from most frequent to least frequent color.
+The `--height` and `--width` of the palette can be specified as well as output
+name with `--op`. Passing `-k 1` will produce the average color of the image.
+
+### 3) The `find` subcommand
 
 #### a) Binary Ferris Example
 
@@ -130,7 +153,7 @@ kmeans_colors find -i gfx/ferris-find.png -c de4a18,bee0fa --replace -o gfx/ferr
 combination. They don't do anything with `find` by itself, since only one
 iteration is needed to produce the result.
 
-### 3) Print, Percentage, & Verbose
+### 4) Print, Percentage, & Verbose
 
 `kmeans_colors -i gfx/pink.jpg -k 2 -pv --pct --no-file`
 

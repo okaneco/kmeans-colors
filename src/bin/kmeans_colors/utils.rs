@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::PathBuf;
 
-use palette::{Lab, Srgb};
+use palette::{Lab, Pixel, Srgb};
 
 use crate::err::CliError;
 
@@ -124,4 +124,201 @@ pub fn save_image(
     };
 
     Ok(())
+}
+
+/// Save palette image file from Lab colors.
+pub fn save_palette_lab(
+    res: &[(Lab, f32, u8)],
+    proportional: bool,
+    height: u32,
+    width: Option<u32>,
+    title: &PathBuf,
+) -> Result<(), Box<dyn Error>> {
+    let len = res.len() as u32;
+    let mut imgbuf: image::RgbImage;
+
+    match width {
+        Some(mut w) => {
+            // Width must be at least `k` pixels wide
+            if w < len {
+                w = len;
+            }
+
+            imgbuf = image::ImageBuffer::new(w, height);
+
+            if !proportional {
+                for (x, _, pixel) in imgbuf.enumerate_pixels_mut() {
+                    let color = Srgb::from(
+                        res.get(
+                            (((x as f32 / w as f32) * len as f32 - 0.5)
+                                .max(0.0)
+                                .min(len as f32))
+                            .round() as usize,
+                        )
+                        .unwrap()
+                        .0,
+                    )
+                    .into_format()
+                    .into_raw();
+                    *pixel = image::Rgb(color);
+                }
+            } else {
+                let mut curr_pos = 0;
+                if let Some((last, elements)) = res.split_last() {
+                    for r in elements.iter() {
+                        let pix: [u8; 3] = Srgb::from(r.0).into_format().into_raw();
+                        let boundary = (curr_pos as f32 + (r.1 * w as f32)).round() as u32;
+                        for y in 0..height {
+                            for x in curr_pos..boundary {
+                                imgbuf.put_pixel(x, y, image::Rgb(pix));
+                            }
+                        }
+                        curr_pos = boundary;
+                    }
+                    let pix: [u8; 3] = Srgb::from(last.0).into_format().into_raw();
+                    for y in 0..height {
+                        for x in curr_pos..w {
+                            imgbuf.put_pixel(x, y, image::Rgb(pix));
+                        }
+                    }
+                }
+            }
+
+            Ok(save_image(&imgbuf.to_vec(), w, height, title)?)
+        }
+        None => {
+            let w = height * len;
+            imgbuf = image::ImageBuffer::new(w, height);
+            if !proportional {
+                for (i, r) in res.iter().enumerate() {
+                    let pix: [u8; 3] = Srgb::from(r.0).into_format().into_raw();
+                    for y in 0..height {
+                        for x in (i as u32 * height)..((i as u32 + 1) * height) {
+                            imgbuf.put_pixel(x, y, image::Rgb(pix));
+                        }
+                    }
+                }
+            } else {
+                let mut curr_pos = 0;
+                if let Some((last, elements)) = res.split_last() {
+                    for r in elements.iter() {
+                        let pix: [u8; 3] = Srgb::from(r.0).into_format().into_raw();
+                        let boundary = (curr_pos as f32 + (r.1 * w as f32)).round() as u32;
+                        for y in 0..height {
+                            for x in curr_pos..boundary {
+                                imgbuf.put_pixel(x, y, image::Rgb(pix));
+                            }
+                        }
+                        curr_pos = boundary;
+                    }
+                    let pix: [u8; 3] = Srgb::from(last.0).into_format().into_raw();
+                    for y in 0..height {
+                        for x in curr_pos..w {
+                            imgbuf.put_pixel(x, y, image::Rgb(pix));
+                        }
+                    }
+                }
+            }
+
+            Ok(save_image(&imgbuf.to_vec(), w, height, title)?)
+        }
+    }
+}
+
+/// Save palette image file from RGB colors.
+pub fn save_palette_rgb(
+    res: &[(Srgb, f32, u8)],
+    proportional: bool,
+    height: u32,
+    width: Option<u32>,
+    title: &PathBuf,
+) -> Result<(), Box<dyn Error>> {
+    let len = res.len() as u32;
+    let mut imgbuf: image::RgbImage;
+
+    match width {
+        Some(mut w) => {
+            // Width must be at least `k` pixels wide
+            if w < len {
+                w = len;
+            }
+
+            imgbuf = image::ImageBuffer::new(w, height);
+
+            if !proportional {
+                for (x, _, pixel) in imgbuf.enumerate_pixels_mut() {
+                    let color = res
+                        .get(
+                            (((x as f32 / w as f32) * len as f32 - 0.5)
+                                .max(0.0)
+                                .min(len as f32))
+                            .round() as usize,
+                        )
+                        .unwrap()
+                        .0
+                        .into_format()
+                        .into_raw();
+                    *pixel = image::Rgb(color);
+                }
+            } else {
+                let mut curr_pos = 0;
+                if let Some((last, elements)) = res.split_last() {
+                    for r in elements.iter() {
+                        let pix: [u8; 3] = (r.0).into_format().into_raw();
+                        let boundary = (curr_pos as f32 + (r.1 * w as f32)).round() as u32;
+                        for y in 0..height {
+                            for x in curr_pos..boundary {
+                                imgbuf.put_pixel(x, y, image::Rgb(pix));
+                            }
+                        }
+                        curr_pos = boundary;
+                    }
+                    let pix: [u8; 3] = (last.0).into_format().into_raw();
+                    for y in 0..height {
+                        for x in curr_pos..w {
+                            imgbuf.put_pixel(x, y, image::Rgb(pix));
+                        }
+                    }
+                }
+            }
+
+            Ok(save_image(&imgbuf.to_vec(), w, height, title)?)
+        }
+        None => {
+            let w = height * len;
+            imgbuf = image::ImageBuffer::new(w, height);
+            if !proportional {
+                for (i, r) in res.iter().enumerate() {
+                    let pix: [u8; 3] = (r.0).into_format().into_raw();
+                    for y in 0..height {
+                        for x in (i as u32 * height)..((i as u32 + 1) * height) {
+                            imgbuf.put_pixel(x, y, image::Rgb(pix));
+                        }
+                    }
+                }
+            } else {
+                let mut curr_pos = 0;
+                if let Some((last, elements)) = res.split_last() {
+                    for r in elements.iter() {
+                        let pix: [u8; 3] = (r.0).into_format().into_raw();
+                        let boundary = (curr_pos as f32 + (r.1 * w as f32)).round() as u32;
+                        for y in 0..height {
+                            for x in curr_pos..boundary {
+                                imgbuf.put_pixel(x, y, image::Rgb(pix));
+                            }
+                        }
+                        curr_pos = boundary;
+                    }
+                    let pix: [u8; 3] = (last.0).into_format().into_raw();
+                    for y in 0..height {
+                        for x in curr_pos..w {
+                            imgbuf.put_pixel(x, y, image::Rgb(pix));
+                        }
+                    }
+                }
+            }
+
+            Ok(save_image(&imgbuf.to_vec(), w, height, title)?)
+        }
+    }
 }

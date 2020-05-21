@@ -44,7 +44,7 @@ pub struct Opt {
     #[structopt(short, long = "iterations", default_value = "20", required = false)]
     pub max_iter: usize,
 
-    /// Convergence factor. Defaults to "8" for Lab and "0.0025" for RGB.
+    /// Convergence factor. Defaults to "10.0" for Lab and "0.0025" for RGB.
     ///
     /// One of the thresholds for halting calculation of k-means. The other is
     /// a limit on total iterations. Decrease the factor for a higher quality
@@ -97,10 +97,38 @@ pub struct Opt {
     #[structopt(short, long)]
     pub verbose: bool,
 
+    /// Save color palette of image to file. Defaults to `40 * k width x 40
+    /// height`.
+    #[structopt(long)]
+    pub palette: bool,
+
+    /// Display colors in order from highest to lowest percentage in the image.
+    /// Applies to console and `--palette` image output.
+    #[structopt(long)]
+    pub sort: bool,
+
+    /// Color palette output will be proportionally scaled.
+    #[structopt(long)]
+    pub proportional: bool,
+
+    /// Height of color palette image. If width is omitted, palette will be
+    /// `height * k` pixels wide.
+    #[structopt(long, default_value = "40")]
+    pub height: u32,
+
+    /// Width of color palette image. Will be at least `k` pixels wide.
+    #[structopt(long)]
+    pub width: Option<u32>,
+
     /// Output file. When input is multiple files, this string will be appended
     /// to the filename. File type extension can be declared here for `.jpg`.
     #[structopt(short, long, parse(from_os_str))]
     pub output: Option<PathBuf>,
+
+    /// Output file. When input is multiple files, this string will be appended
+    /// to the filename. File type extension can be declared here for `.jpg`.
+    #[structopt(long = "op", parse(from_os_str))]
+    pub palette_output: Option<PathBuf>,
 
     /// Maps the image to the user supplied colors.
     #[structopt(subcommand, name = "command")]
