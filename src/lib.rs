@@ -40,7 +40,9 @@
 //! use palette::{Lab, Pixel, Srgb};
 //! use kmeans_colors::{get_kmeans_lab, map_indices_to_colors_lab, KmeansLab};
 //!
-//! # let img_vec = [0u8, 0, 0, 255, 255, 255];
+//! // An image buffer of one black pixel and one white pixel
+//! let img_vec = [0u8, 0, 0, 255, 255, 255];
+//!
 //! # let runs = 3;
 //! # let k = 1;
 //! # let max_iter = 20;
@@ -127,7 +129,7 @@
 //! #         result = run_result;
 //! #     }
 //! # });
-//! // Using result from k-means example
+//! // Using result from k-means example, sort by percentage
 //! let mut res = sort_indexed_colors_lab(&result.centroids, &result.indices);
 //! res.sort_unstable_by(|a, b| (b.1).partial_cmp(&a.1).unwrap());
 //!
