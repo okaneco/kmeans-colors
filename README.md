@@ -32,16 +32,16 @@ files. The `-o` option is not required.
 ### 2) Color palettes
 
 ```
-kmeans_colors -i lanterns.jpg --no-file --palette
+kmeans_colors -i gfx/lanterns.jpg --no-file --palette
 ```
 ![Red color palette](gfx/lanterns-lab-8.png)
 
 ```
-kmeans_colors -i pink.jpg --no-file --palette --proportional
+kmeans_colors -i gfx/pink.jpg --no-file --palette --proportional
 ```
 ![Green and red color palette](gfx/pink-lab-8.png)
 ```
-kmeans_colors -i flowers.jpg --no-file --palette --proportional --sort
+kmeans_colors -i gfx/flowers.jpg --no-file --palette --proportional --sort
 ```
 ![Blue and pink proportional color palette](gfx/flowers-lab-8.png)
 
@@ -119,7 +119,7 @@ kmeans_colors -i gfx/flowers.jpg -r 3 -p -k 12 --no-file
 Then, we can use those colors with the `-c` option on the right image.
 
 ```
-kmeans_colors find -i lanterns.jpg -c 492f38,6c363e,8d444e,ae525b,8c6779,677a9b,
+kmeans_colors find -i gfx/lanterns.jpg -c 492f38,6c363e,8d444e,ae525b,8c6779,677a9b,
 b87078,4b95bb,a499b0,d7969d,e3b8c0,c5c6da --replace
 ```
 
@@ -189,6 +189,7 @@ smaller `k` values (below ~40) in a reasonable amount of time. Finding the
 iterations for small `k`.
 
 ## Features
+- create a color palette from an image
 - Lab space or RGB space calculations
 - find the nearest colors to input colors
 - replace the colors with custom colors
