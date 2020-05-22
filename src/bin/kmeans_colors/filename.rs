@@ -63,6 +63,66 @@ pub fn create_filename(
     Ok(title)
 }
 
+/// Creates a `PathBuf` to save the output palette.
+pub fn create_filename_palette(
+    input: &Vec<PathBuf>,
+    output: &Option<PathBuf>,
+    rgb: bool,
+    k: Option<u8>,
+    file: &PathBuf,
+) -> Result<PathBuf, CliError> {
+    let title;
+    let extension = "png";
+    if input.len() == 1 {
+        match output {
+            Some(x) => {
+                let mut temp = x.clone();
+                match temp.extension() {
+                    Some(_) => {}
+                    None => {
+                        temp.set_extension(extension);
+                    }
+                }
+                title = temp;
+            }
+            None => {
+                let mut temp = PathBuf::from(generate_filename_palette(&file, k.unwrap(), rgb)?);
+                temp.set_extension(extension);
+                title = temp;
+            }
+        }
+    } else {
+        match output {
+            Some(x) => {
+                let mut temp = x.clone();
+                let clone = temp.clone();
+                let ext;
+                match clone.extension() {
+                    Some(y) => {
+                        ext = y.to_str().unwrap();
+                    }
+                    None => {
+                        ext = extension;
+                    }
+                }
+                temp.set_file_name(format!(
+                    "{}-{}",
+                    &file.file_stem().unwrap().to_str().unwrap(),
+                    &temp.file_stem().unwrap().to_str().unwrap()
+                ));
+                title = temp.with_extension(ext);
+            }
+            None => {
+                let mut temp = PathBuf::from(generate_filename_palette(&file, k.unwrap(), rgb)?);
+                temp.set_extension(extension);
+                title = temp;
+            }
+        }
+    }
+
+    Ok(title)
+}
+
 /// Appends a timestamp to an input filename to be used as output filename.
 fn generate_filename(path: &PathBuf, k: Option<u8>) -> Result<String, CliError> {
     let filename = path.file_stem().unwrap().to_str().unwrap().to_string();
@@ -73,4 +133,15 @@ fn generate_filename(path: &PathBuf, k: Option<u8>) -> Result<String, CliError> 
         Some(x) => Ok(filename + "-" + &secs.to_string() + &millis + "-" + &x.to_string()),
         None => Ok(filename + "-" + &secs.to_string() + &millis),
     }
+}
+
+/// Appends a timestamp to an input filename to be used as a palette filename.
+fn generate_filename_palette(path: &PathBuf, k: u8, rgb: bool) -> Result<String, CliError> {
+    let filename = path.file_stem().unwrap().to_str().unwrap().to_string();
+    let now = SystemTime::now().duration_since(UNIX_EPOCH)?;
+    let secs = now.as_secs();
+    let millis = format!("{:03}", now.subsec_millis());
+    let color = if rgb { "rgb" } else { "lab" };
+
+    Ok(filename + "-" + &secs.to_string() + &millis + "-" + color + "-" + &k.to_string())
 }

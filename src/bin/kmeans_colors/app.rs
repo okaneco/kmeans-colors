@@ -4,8 +4,10 @@ use std::path::PathBuf;
 use palette::{Lab, Pixel, Srgb};
 
 use crate::args::Opt;
-use crate::filename::create_filename;
-use crate::utils::{parse_color, print_colors_lab, print_colors_rgb, save_image};
+use crate::filename::{create_filename, create_filename_palette};
+use crate::utils::{
+    parse_color, print_colors_lab, print_colors_rgb, save_image, save_palette_lab, save_palette_rgb,
+};
 use kmeans_colors::{
     get_closest_centroid_lab, get_closest_centroid_rgb, get_kmeans_lab, get_kmeans_rgb,
     map_indices_to_colors_lab, map_indices_to_colors_rgb, sort_indexed_colors_lab,
@@ -62,10 +64,32 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                 }
             });
 
-            // Print and sort results
-            if opt.print || opt.percentage {
-                let res = sort_indexed_colors_lab(&result.centroids, &result.indices);
-                print_colors_lab(opt.percentage, &res)?;
+            // Print and/or sort results, output to palette
+            if opt.print || opt.percentage || opt.palette {
+                let mut res = sort_indexed_colors_lab(&result.centroids, &result.indices);
+                if opt.sort {
+                    res.sort_unstable_by(|a, b| (b.1).partial_cmp(&a.1).unwrap());
+                }
+
+                if opt.print || opt.percentage {
+                    print_colors_lab(opt.percentage, &res)?;
+                }
+
+                if opt.palette {
+                    save_palette_lab(
+                        &res,
+                        opt.proportional,
+                        opt.height,
+                        opt.width,
+                        &create_filename_palette(
+                            &opt.input,
+                            &opt.palette_output,
+                            opt.rgb,
+                            Some(opt.k),
+                            file,
+                        )?,
+                    )?;
+                }
             }
 
             // Don't allocate image buffer if no-file
@@ -99,10 +123,32 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                 }
             });
 
-            // Print and sort results
-            if opt.print || opt.percentage {
-                let res = sort_indexed_colors_rgb(&result.centroids, &result.indices);
-                print_colors_rgb(opt.percentage, &res)?;
+            // Print and/or sort results, output to palette
+            if opt.print || opt.percentage || opt.palette {
+                let mut res = sort_indexed_colors_rgb(&result.centroids, &result.indices);
+                if opt.sort {
+                    res.sort_unstable_by(|a, b| (b.1).partial_cmp(&a.1).unwrap());
+                }
+
+                if opt.print || opt.percentage {
+                    print_colors_rgb(opt.percentage, &res)?;
+                }
+
+                if opt.palette {
+                    save_palette_rgb(
+                        &res,
+                        opt.proportional,
+                        opt.height,
+                        opt.width,
+                        &create_filename_palette(
+                            &opt.input,
+                            &opt.palette_output,
+                            opt.rgb,
+                            Some(opt.k),
+                            file,
+                        )?,
+                    )?;
+                }
             }
 
             // Don't allocate image buffer if no-file
