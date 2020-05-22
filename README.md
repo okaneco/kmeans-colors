@@ -24,10 +24,10 @@ kmeans_colors -i gfx/pink.jpg -k 2 -r 3 -o pink2
 ```
 ![Animation of flowers](gfx/pink.gif)
 
-The animation is a composite of k=2 to k=9 k-means with the following command.
+The animation is a composite of k=2 to k=9 k-means with the above command.
 `-k` is the number of colors to find in the image. `-r` is the amount of runs
 to perform, `-o` specifies the output. By default, the images will save as .png
-files. `-o` flag is optional.
+files. The `-o` option is not required.
 
 ### 2) Color palettes
 
@@ -107,7 +107,7 @@ would be replacing the color groups we'd calculate using `-k 4` as in Example 1.
 
 We can transfer the average colors of the left image to the lanterns on the
 right. Running the following command prints the 12 colors below in order from
-darkest to lightest.
+darkest to lightest in hexadecimal.
 
 ```
 kmeans_colors -i gfx/flowers.jpg -r 3 -p -k 12 --no-file
@@ -116,7 +116,7 @@ kmeans_colors -i gfx/flowers.jpg -r 3 -p -k 12 --no-file
 492f38,6c363e,8d444e,ae525b,8c6779,677a9b,b87078,4b95bb,a499b0,d7969d,e3b8c0,c5c6da
 ```
 
-Then we can use those colors with the `-c` option on the right image.
+Then, we can use those colors with the `-c` option on the right image.
 
 ```
 kmeans_colors find -i lanterns.jpg -c 492f38,6c363e,8d444e,ae525b,8c6779,677a9b,
