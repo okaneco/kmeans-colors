@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::path::PathBuf;
 
-use palette::{Lab, Pixel, Srgb};
+use palette::{Lab, Pixel, Srgb, Srgba};
 
 use crate::args::Opt;
 use crate::filename::{create_filename, create_filename_palette};
@@ -28,7 +28,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
         if opt.verbose {
             println!("{}", &file.to_string_lossy());
         }
-        let img = image::open(&file)?.to_rgb();
+        let img = image::open(&file)?.to_rgba();
         let (imgx, imgy) = (img.dimensions().0, img.dimensions().1);
         let img_vec = img.into_raw();
         let buffer;
@@ -43,10 +43,19 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
         // Defaults to Lab, first case.
         if !opt.rgb {
             // Convert Srgb image buffer to Lab for kmeans
-            let lab: Vec<Lab> = Srgb::from_raw_slice(&img_vec)
-                .iter()
-                .map(|x| x.into_format().into())
-                .collect();
+            let lab: Vec<Lab>;
+            if !opt.transparent {
+                lab = Srgba::from_raw_slice(&img_vec)
+                    .iter()
+                    .map(|x| x.into_format().into())
+                    .collect();
+            } else {
+                lab = Srgba::from_raw_slice(&img_vec)
+                    .iter()
+                    .filter(|x| x.alpha == 255)
+                    .map(|x| x.into_format().into())
+                    .collect();
+            }
 
             // Iterate over amount of runs keeping best results
             let mut result = KmeansLab::new();
@@ -98,13 +107,27 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             }
 
             // Convert indexed colors to Srgb colors to output as final result
-            buffer = map_indices_to_colors_lab(&result.centroids, &result.indices);
+            if !opt.transparent {
+                buffer = map_indices_to_colors_lab(&result.centroids, &result.indices);
+            } else {
+                // TODO: use get_closest_centroid to find/replace and preserve transparency
+                continue;
+            }
         } else {
             // Read image buffer into Srgb format
-            let rgb: Vec<Srgb> = Srgb::from_raw_slice(&img_vec)
-                .iter()
-                .map(|x| x.into_format().into())
-                .collect();
+            let rgb: Vec<Srgb>;
+            if !opt.transparent {
+                rgb = Srgba::from_raw_slice(&img_vec)
+                    .iter()
+                    .map(|x| x.into_format().into())
+                    .collect();
+            } else {
+                rgb = Srgba::from_raw_slice(&img_vec)
+                    .iter()
+                    .filter(|x| x.alpha == 255)
+                    .map(|x| x.into_format().into())
+                    .collect();
+            }
 
             let mut result = KmeansRgb::new();
 
@@ -157,7 +180,12 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             }
 
             // Convert indexed colors to Srgb colors to output as final result
-            buffer = map_indices_to_colors_rgb(&result.centroids, &result.indices);
+            if !opt.transparent {
+                buffer = map_indices_to_colors_rgb(&result.centroids, &result.indices);
+            } else {
+                // TODO:
+                continue;
+            }
         }
 
         save_image(

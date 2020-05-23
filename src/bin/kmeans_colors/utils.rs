@@ -167,11 +167,16 @@ pub fn save_palette_lab(
                 if let Some((last, elements)) = res.split_last() {
                     for r in elements.iter() {
                         let pix: [u8; 3] = Srgb::from(r.0).into_format().into_raw();
-                        let boundary = (curr_pos as f32 + (r.1 * w as f32)).round() as u32;
+                        // Clamp boundary to image width
+                        let boundary = ((curr_pos as f32 + (r.1 * w as f32)).round() as u32).min(w);
                         for y in 0..height {
                             for x in curr_pos..boundary {
                                 imgbuf.put_pixel(x, y, image::Rgb(pix));
                             }
+                        }
+                        // If boundary has been clamped, return early
+                        if boundary == w {
+                            return Ok(save_image(&imgbuf.to_vec(), w, height, title)?);
                         }
                         curr_pos = boundary;
                     }
@@ -203,11 +208,14 @@ pub fn save_palette_lab(
                 if let Some((last, elements)) = res.split_last() {
                     for r in elements.iter() {
                         let pix: [u8; 3] = Srgb::from(r.0).into_format().into_raw();
-                        let boundary = (curr_pos as f32 + (r.1 * w as f32)).round() as u32;
+                        let boundary = ((curr_pos as f32 + (r.1 * w as f32)).round() as u32).min(w);
                         for y in 0..height {
                             for x in curr_pos..boundary {
                                 imgbuf.put_pixel(x, y, image::Rgb(pix));
                             }
+                        }
+                        if boundary == w {
+                            return Ok(save_image(&imgbuf.to_vec(), w, height, title)?);
                         }
                         curr_pos = boundary;
                     }
@@ -265,11 +273,14 @@ pub fn save_palette_rgb(
                 if let Some((last, elements)) = res.split_last() {
                     for r in elements.iter() {
                         let pix: [u8; 3] = (r.0).into_format().into_raw();
-                        let boundary = (curr_pos as f32 + (r.1 * w as f32)).round() as u32;
+                        let boundary = ((curr_pos as f32 + (r.1 * w as f32)).round() as u32).min(w);
                         for y in 0..height {
                             for x in curr_pos..boundary {
                                 imgbuf.put_pixel(x, y, image::Rgb(pix));
                             }
+                        }
+                        if boundary == w {
+                            return Ok(save_image(&imgbuf.to_vec(), w, height, title)?);
                         }
                         curr_pos = boundary;
                     }
@@ -301,11 +312,14 @@ pub fn save_palette_rgb(
                 if let Some((last, elements)) = res.split_last() {
                     for r in elements.iter() {
                         let pix: [u8; 3] = (r.0).into_format().into_raw();
-                        let boundary = (curr_pos as f32 + (r.1 * w as f32)).round() as u32;
+                        let boundary = ((curr_pos as f32 + (r.1 * w as f32)).round() as u32).min(w);
                         for y in 0..height {
                             for x in curr_pos..boundary {
                                 imgbuf.put_pixel(x, y, image::Rgb(pix));
                             }
+                        }
+                        if boundary == w {
+                            return Ok(save_image(&imgbuf.to_vec(), w, height, title)?);
                         }
                         curr_pos = boundary;
                     }

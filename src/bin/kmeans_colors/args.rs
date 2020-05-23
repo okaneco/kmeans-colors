@@ -133,6 +133,11 @@ pub struct Opt {
     /// Maps the image to the user supplied colors.
     #[structopt(subcommand, name = "command")]
     pub cmd: Option<Command>,
+
+    /// Ignore alpha channel values for calculation of k-means, does not output
+    /// an image but will output palettes.
+    #[structopt(long, hidden = true)]
+    pub transparent: bool,
 }
 
 #[derive(StructOpt, Debug)]
