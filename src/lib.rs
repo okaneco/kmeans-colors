@@ -7,9 +7,11 @@
 //!
 //! # Overview
 //!
-//! This crate provides methods for k-means calculation using the Lab color
-//! space or RGB color space. Each space has advantages and disadvantages due
-//! to the characteristics of the color space.
+//! This crate provides traits for calculating k-means using the Lab color space
+//! or RGB color space, by default. Each space has advantages and disadvantages
+//! due to the characteristics of the color space. Custom k-means calculations
+//! can be provided by implementing the [`Calculate`](trait.Calculate.html)
+//! trait.
 //!
 //! The Lab calculation produces more perceptually accurate results at a
 //! slightly slower runtime. RGB calculation will converge faster than Lab but
@@ -38,7 +40,7 @@
 //!
 //! ```
 //! use palette::{Lab, Pixel, Srgb};
-//! use kmeans_colors::{get_kmeans_lab, map_indices_to_colors_lab, KmeansLab};
+//! use kmeans_colors::{get_kmeans, Calculate, Kmeans, Sort};
 //!
 //! // An image buffer of one black pixel and one white pixel
 //! let img_vec = [0u8, 0, 0, 255, 255, 255];
@@ -57,9 +59,9 @@
 //!     .collect();
 //!
 //! // Iterate over amount of runs keeping best results
-//! let mut result = KmeansLab::new();
+//! let mut result = Kmeans::new();
 //! (0..runs).for_each(|i| {
-//!     let run_result = get_kmeans_lab(
+//!     let run_result = get_kmeans(
 //!         k,
 //!         max_iter,
 //!         converge,
@@ -73,7 +75,7 @@
 //! });
 //!
 //! // Convert indexed colors back to RGB [u8] for output
-//! buffer = map_indices_to_colors_lab(&result.centroids, &result.indices);
+//! buffer = Lab::map_indices_to_centroids(&result.centroids, &result.indices);
 //! # assert_eq!(buffer, [119, 119, 119, 119, 119, 119]);
 //! ```
 //!
@@ -84,7 +86,7 @@
 //!
 //! The binary uses `8` as the default `k`. The iteration limit is set to `20`,
 //! RGB usually converges in under 10 iterations depending on the `k`. The
-//! convergence factor defaults to `8.0` for Lab and `0.0025` for RGB. The
+//! convergence factor defaults to `10.0` for Lab and `0.0025` for RGB. The
 //! number of runs defaults to `3` for one of the binary subcommands. Through
 //! testing, these numbers were found to be an adequate tradeoff between
 //! performance and accuracy. If the results do not appear correct, raise the
@@ -93,16 +95,15 @@
 //! ## Getting the dominant color
 //!
 //! After k-means calculation, the dominant color can be found by sorting the
-//! results and taking the contents of the first vector. By default, the
-//! `sort_indexed_colors_*` functions sort from darkest to lightest color. The
-//! functions return a tuple of the form `(Color, f32, u8)`: a color, the
-//! percentage of its presence in the buffer, and the centroid index to which it
-//! corresponds.
+//! results and taking the centroid of the first item. By default,
+//! [`sort_indexed_colors`][sort] sorts from darkest to lightest color. The
+//! function returns an array of [`CentroidData`](struct.CentroidData.html).
 //!
+//! [sort]: trait.Sort.html#tymethod.sort_indexed_colors
 //! ```no_run
 //! # use palette::{Lab, Pixel, Srgb};
-//! # use kmeans_colors::{get_kmeans_lab, map_indices_to_colors_lab, KmeansLab};
-//! use kmeans_colors::sort_indexed_colors_lab;
+//! # use kmeans_colors::{get_kmeans, Kmeans};
+//! use kmeans_colors::Sort;
 //!
 //! # let img_vec = [0u8, 0, 0, 255, 255, 255];
 //! # let runs = 3;
@@ -115,9 +116,9 @@
 //! #    .iter()
 //! #    .map(|x| x.into_format().into())
 //! #    .collect();
-//! # let mut result = KmeansLab::new();
+//! # let mut result = Kmeans::new();
 //! # (0..runs).for_each(|i| {
-//! #     let run_result = get_kmeans_lab(
+//! #     let run_result = get_kmeans(
 //! #         k,
 //! #         max_iter,
 //! #         converge,
@@ -129,19 +130,24 @@
 //! #         result = run_result;
 //! #     }
 //! # });
-//! // Using result from k-means example, sort by percentage
-//! let mut res = sort_indexed_colors_lab(&result.centroids, &result.indices);
-//! res.sort_unstable_by(|a, b| (b.1).partial_cmp(&a.1).unwrap());
+//! // Using the results from the previous example, process the centroid data
+//! let mut res = Lab::sort_indexed_colors(&result.centroids, &result.indices);
 //!
-//! // The most appearing color will be the first element of the vec
-//! let dominant_color = res.first().unwrap().0;
+//! // We can find the dominant color directly
+//! let dominant_color = Lab::get_dominant_color(&res);
+//! # assert_eq!(
+//! #    Srgb::from(dominant_color.unwrap()).into_format::<u8>(),
+//! #    Srgb::new(119u8, 119, 119)
+//! # );
+//!
+//! // Or we can manually sort the vec by percentage, and the most appearing
+//! // color will be the first element
+//! res.sort_unstable_by(|a, b| (b.percentage).partial_cmp(&a.percentage).unwrap());
+//! let dominant_color = res.first().unwrap().centroid;
 //! ```
 
 mod kmeans;
 mod sort;
 
-pub use kmeans::{
-    get_closest_centroid_lab, get_closest_centroid_rgb, get_kmeans_lab, get_kmeans_rgb,
-    map_indices_to_colors_lab, map_indices_to_colors_rgb, KmeansLab, KmeansRgb,
-};
-pub use sort::{sort_indexed_colors_lab, sort_indexed_colors_rgb};
+pub use kmeans::{get_kmeans, Calculate, Kmeans};
+pub use sort::{CentroidData, Sort};

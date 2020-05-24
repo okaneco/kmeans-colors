@@ -4,9 +4,10 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::PathBuf;
 
-use palette::{Lab, Pixel, Srgb};
+use palette::{Pixel, Srgb};
 
 use crate::err::CliError;
+use kmeans_colors::{Calculate, CentroidData};
 
 /// Parse hex string to Rgb color.
 pub fn parse_color(c: &str) -> Result<Srgb<u8>, CliError> {
@@ -43,43 +44,28 @@ pub fn parse_color(c: &str) -> Result<Srgb<u8>, CliError> {
     Ok(Srgb::new(red, green, blue))
 }
 
-/// Prints the Lab colors and percentage of their appearance in an image buffer.
-pub fn print_colors_lab(
+/// Prints colors and percentage of their appearance in an image buffer.
+pub fn print_colors<C: Calculate + Copy + Into<Srgb>>(
     show_percentage: bool,
-    colors: &Vec<(Lab, f32, u8)>,
+    colors: &Vec<CentroidData<C>>,
 ) -> Result<(), Box<dyn Error>> {
     let mut col = String::new();
     let mut freq = String::new();
     if let Some((last, elements)) = colors.split_last() {
         for elem in elements {
-            write!(&mut col, "{:x},", Srgb::from(elem.0).into_format::<u8>())?;
-            write!(&mut freq, "{:0.4},", elem.1)?;
+            write!(
+                &mut col,
+                "{:x},",
+                Srgb::from(elem.centroid.into()).into_format::<u8>()
+            )?;
+            write!(&mut freq, "{:0.4},", elem.percentage)?;
         }
-        write!(&mut col, "{:x}\n", Srgb::from(last.0).into_format::<u8>())?;
-        write!(&mut freq, "{:0.4}\n", last.1)?;
-    }
-    print!("{}", col);
-    if show_percentage {
-        print!("{}", freq);
-    }
-
-    Ok(())
-}
-
-/// Prints the Rgb colors and percentage of their appearance in an image buffer.
-pub fn print_colors_rgb(
-    show_percentage: bool,
-    colors: &Vec<(Srgb, f32, u8)>,
-) -> Result<(), Box<dyn Error>> {
-    let mut col = String::new();
-    let mut freq = String::new();
-    if let Some((last, elements)) = colors.split_last() {
-        for elem in elements {
-            write!(&mut col, "{:x},", Srgb::from(elem.0).into_format::<u8>())?;
-            write!(&mut freq, "{:0.4},", elem.1)?;
-        }
-        write!(&mut col, "{:x}\n", Srgb::from(last.0).into_format::<u8>())?;
-        write!(&mut freq, "{:0.4}\n", last.1)?;
+        write!(
+            &mut col,
+            "{:x}\n",
+            Srgb::from(last.centroid.into()).into_format::<u8>()
+        )?;
+        write!(&mut freq, "{:0.4}\n", last.percentage)?;
     }
     print!("{}", col);
     if show_percentage {
@@ -126,9 +112,9 @@ pub fn save_image(
     Ok(())
 }
 
-/// Save palette image file from Lab colors.
-pub fn save_palette_lab(
-    res: &[(Lab, f32, u8)],
+/// Save palette image file.
+pub fn save_palette<C: Calculate + Copy + Into<Srgb>>(
+    res: &[CentroidData<C>],
     proportional: bool,
     height: u32,
     width: Option<u32>,
@@ -156,7 +142,8 @@ pub fn save_palette_lab(
                             .round() as usize,
                         )
                         .unwrap()
-                        .0,
+                        .centroid
+                        .into(),
                     )
                     .into_format()
                     .into_raw();
@@ -166,9 +153,10 @@ pub fn save_palette_lab(
                 let mut curr_pos = 0;
                 if let Some((last, elements)) = res.split_last() {
                     for r in elements.iter() {
-                        let pix: [u8; 3] = Srgb::from(r.0).into_format().into_raw();
+                        let pix: [u8; 3] = Srgb::from(r.centroid.into()).into_format().into_raw();
                         // Clamp boundary to image width
-                        let boundary = ((curr_pos as f32 + (r.1 * w as f32)).round() as u32).min(w);
+                        let boundary =
+                            ((curr_pos as f32 + (r.percentage * w as f32)).round() as u32).min(w);
                         for y in 0..height {
                             for x in curr_pos..boundary {
                                 imgbuf.put_pixel(x, y, image::Rgb(pix));
@@ -180,7 +168,7 @@ pub fn save_palette_lab(
                         }
                         curr_pos = boundary;
                     }
-                    let pix: [u8; 3] = Srgb::from(last.0).into_format().into_raw();
+                    let pix: [u8; 3] = Srgb::from(last.centroid.into()).into_format().into_raw();
                     for y in 0..height {
                         for x in curr_pos..w {
                             imgbuf.put_pixel(x, y, image::Rgb(pix));
@@ -196,7 +184,7 @@ pub fn save_palette_lab(
             imgbuf = image::ImageBuffer::new(w, height);
             if !proportional {
                 for (i, r) in res.iter().enumerate() {
-                    let pix: [u8; 3] = Srgb::from(r.0).into_format().into_raw();
+                    let pix: [u8; 3] = Srgb::from(r.centroid.into()).into_format().into_raw();
                     for y in 0..height {
                         for x in (i as u32 * height)..((i as u32 + 1) * height) {
                             imgbuf.put_pixel(x, y, image::Rgb(pix));
@@ -207,8 +195,9 @@ pub fn save_palette_lab(
                 let mut curr_pos = 0;
                 if let Some((last, elements)) = res.split_last() {
                     for r in elements.iter() {
-                        let pix: [u8; 3] = Srgb::from(r.0).into_format().into_raw();
-                        let boundary = ((curr_pos as f32 + (r.1 * w as f32)).round() as u32).min(w);
+                        let pix: [u8; 3] = Srgb::from(r.centroid.into()).into_format().into_raw();
+                        let boundary =
+                            ((curr_pos as f32 + (r.percentage * w as f32)).round() as u32).min(w);
                         for y in 0..height {
                             for x in curr_pos..boundary {
                                 imgbuf.put_pixel(x, y, image::Rgb(pix));
@@ -219,111 +208,7 @@ pub fn save_palette_lab(
                         }
                         curr_pos = boundary;
                     }
-                    let pix: [u8; 3] = Srgb::from(last.0).into_format().into_raw();
-                    for y in 0..height {
-                        for x in curr_pos..w {
-                            imgbuf.put_pixel(x, y, image::Rgb(pix));
-                        }
-                    }
-                }
-            }
-
-            Ok(save_image(&imgbuf.to_vec(), w, height, title)?)
-        }
-    }
-}
-
-/// Save palette image file from RGB colors.
-pub fn save_palette_rgb(
-    res: &[(Srgb, f32, u8)],
-    proportional: bool,
-    height: u32,
-    width: Option<u32>,
-    title: &PathBuf,
-) -> Result<(), Box<dyn Error>> {
-    let len = res.len() as u32;
-    let mut imgbuf: image::RgbImage;
-
-    match width {
-        Some(mut w) => {
-            // Width must be at least `k` pixels wide
-            if w < len {
-                w = len;
-            }
-
-            imgbuf = image::ImageBuffer::new(w, height);
-
-            if !proportional {
-                for (x, _, pixel) in imgbuf.enumerate_pixels_mut() {
-                    let color = res
-                        .get(
-                            (((x as f32 / w as f32) * len as f32 - 0.5)
-                                .max(0.0)
-                                .min(len as f32))
-                            .round() as usize,
-                        )
-                        .unwrap()
-                        .0
-                        .into_format()
-                        .into_raw();
-                    *pixel = image::Rgb(color);
-                }
-            } else {
-                let mut curr_pos = 0;
-                if let Some((last, elements)) = res.split_last() {
-                    for r in elements.iter() {
-                        let pix: [u8; 3] = (r.0).into_format().into_raw();
-                        let boundary = ((curr_pos as f32 + (r.1 * w as f32)).round() as u32).min(w);
-                        for y in 0..height {
-                            for x in curr_pos..boundary {
-                                imgbuf.put_pixel(x, y, image::Rgb(pix));
-                            }
-                        }
-                        if boundary == w {
-                            return Ok(save_image(&imgbuf.to_vec(), w, height, title)?);
-                        }
-                        curr_pos = boundary;
-                    }
-                    let pix: [u8; 3] = (last.0).into_format().into_raw();
-                    for y in 0..height {
-                        for x in curr_pos..w {
-                            imgbuf.put_pixel(x, y, image::Rgb(pix));
-                        }
-                    }
-                }
-            }
-
-            Ok(save_image(&imgbuf.to_vec(), w, height, title)?)
-        }
-        None => {
-            let w = height * len;
-            imgbuf = image::ImageBuffer::new(w, height);
-            if !proportional {
-                for (i, r) in res.iter().enumerate() {
-                    let pix: [u8; 3] = (r.0).into_format().into_raw();
-                    for y in 0..height {
-                        for x in (i as u32 * height)..((i as u32 + 1) * height) {
-                            imgbuf.put_pixel(x, y, image::Rgb(pix));
-                        }
-                    }
-                }
-            } else {
-                let mut curr_pos = 0;
-                if let Some((last, elements)) = res.split_last() {
-                    for r in elements.iter() {
-                        let pix: [u8; 3] = (r.0).into_format().into_raw();
-                        let boundary = ((curr_pos as f32 + (r.1 * w as f32)).round() as u32).min(w);
-                        for y in 0..height {
-                            for x in curr_pos..boundary {
-                                imgbuf.put_pixel(x, y, image::Rgb(pix));
-                            }
-                        }
-                        if boundary == w {
-                            return Ok(save_image(&imgbuf.to_vec(), w, height, title)?);
-                        }
-                        curr_pos = boundary;
-                    }
-                    let pix: [u8; 3] = (last.0).into_format().into_raw();
+                    let pix: [u8; 3] = Srgb::from(last.centroid.into()).into_format().into_raw();
                     for y in 0..height {
                         for x in curr_pos..w {
                             imgbuf.put_pixel(x, y, image::Rgb(pix));
