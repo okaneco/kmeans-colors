@@ -1,15 +1,16 @@
+#[cfg(feature = "palette_color")]
 use palette::{Lab, Pixel, Srgb};
+
 use rand::{Rng, SeedableRng};
 
-/// A trait for making a color type able to be calculated with k-means.
+/// A trait for enabling k-means calculation of a data type.
 pub trait Calculate: Sized {
-    /// Find a pixel's nearest centroid color, index the pixel with that
-    /// centroid.
+    /// Find a points's nearest centroid, index the point with that centroid.
     fn get_closest_centroid(buffer: &[Self], centroids: &[Self], indices: &mut Vec<u8>);
 
-    /// Find the new centroid locations based on the average of the colors that
-    /// correspond to the centroid. If no colors correspond, the centroid is
-    /// re-initialized with a random color.
+    /// Find the new centroid locations based on the average of the points that
+    /// correspond to the centroid. If no point correspond, the centroid is
+    /// re-initialized with a random point.
     fn recalculate_centroids(
         rng: &mut impl Rng,
         centroids: &mut [Self],
@@ -20,14 +21,14 @@ pub trait Calculate: Sized {
     /// Calculate the distance metric for convergence comparison.
     fn check_loop(centroids: &[Self], old_centroids: &[Self]) -> f32;
 
-    /// Generate random color.
+    /// Generate random point.
     fn create_random(rng: &mut impl Rng) -> Self;
 
-    /// Calculate the geometric distance between two colors, the square root is
+    /// Calculate the geometric distance between two points, the square root is
     /// omitted.
     fn difference(c1: &Self, c2: &Self) -> f32;
 
-    /// Map pixel indices to centroid colors for output as an Srgb `u8` buffer.
+    /// Map point indices to each centroid for output buffer.
     fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<u8>;
 }
 
@@ -37,9 +38,9 @@ pub trait Calculate: Sized {
 pub struct Kmeans<C: Calculate> {
     /// Sum of squares distance metric for centroids compared to old centroids.
     pub score: f32,
-    /// Colors determined to be centroids of input buffer.
+    /// Points determined to be centroids of input buffer.
     pub centroids: Vec<C>,
-    /// Buffer of pixels indexed to centroids.
+    /// Buffer of points indexed to centroids.
     pub indices: Vec<u8>,
 }
 
@@ -53,22 +54,17 @@ impl<C: Calculate> Kmeans<C> {
     }
 }
 
-/// Find the k-means colors of a buffer. `max_iter` and `converge` are used
+/// Find the k-means centroids of a buffer. `max_iter` and `converge` are used
 /// together to determine when the k-means calculation has converged. When the
 /// `score` is less than `converge` or the number of iterations reaches
 /// `max_iter`, the calculation is complete.
 ///
-/// `k`: number of clusters.
-///
-/// `max_iter`: maximum number of iterations.
-///
-/// `converge`: threshold for convergence.
-///
-/// `verbose`: flag for printing convergence information to console.
-///
-/// `buf`: array of colors.
-///
-/// `seed`: seed for the random number generator.
+/// - `k` - number of clusters.
+/// - `max_iter` - maximum number of iterations.
+/// - `converge` - threshold for convergence.
+/// - `verbose` - flag for printing convergence information to console.
+/// - `buf` - array of points.
+/// - `seed` - seed for the random number generator.
 pub fn get_kmeans<C: Calculate + Clone>(
     k: u8,
     max_iter: usize,
@@ -82,7 +78,7 @@ pub fn get_kmeans<C: Calculate + Clone>(
     let mut centroids: Vec<C> = Vec::with_capacity(k as usize);
     (0..k).for_each(|_| centroids.push(C::create_random(&mut rng)));
 
-    // Initialize indexed color buffer and convergence variables
+    // Initialize indexed buffer and convergence variables
     let mut iterations = 0;
     let mut score;
     let mut old_centroids = centroids.clone();
@@ -120,6 +116,7 @@ pub fn get_kmeans<C: Calculate + Clone>(
     }
 }
 
+#[cfg(feature = "palette_color")]
 impl Calculate for Lab {
     fn get_closest_centroid(lab: &[Lab], centroids: &[Lab], indices: &mut Vec<u8>) {
         for color in lab.iter() {
@@ -211,6 +208,7 @@ impl Calculate for Lab {
     }
 }
 
+#[cfg(feature = "palette_color")]
 impl Calculate for Srgb {
     fn get_closest_centroid(rgb: &[Srgb], centroids: &[Srgb], indices: &mut Vec<u8>) {
         for color in rgb.iter() {
