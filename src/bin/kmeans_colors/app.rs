@@ -5,14 +5,8 @@ use palette::{Lab, Pixel, Srgb, Srgba};
 
 use crate::args::Opt;
 use crate::filename::{create_filename, create_filename_palette};
-use crate::utils::{
-    parse_color, print_colors_lab, print_colors_rgb, save_image, save_palette_lab, save_palette_rgb,
-};
-use kmeans_colors::{
-    get_closest_centroid_lab, get_closest_centroid_rgb, get_kmeans_lab, get_kmeans_rgb,
-    map_indices_to_colors_lab, map_indices_to_colors_rgb, sort_indexed_colors_lab,
-    sort_indexed_colors_rgb, KmeansLab, KmeansRgb,
-};
+use crate::utils::{parse_color, print_colors, save_image, save_palette};
+use kmeans_colors::{get_kmeans, Calculate, Kmeans, Sort};
 
 pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
     if opt.input.len() == 0 {
@@ -58,9 +52,9 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             }
 
             // Iterate over amount of runs keeping best results
-            let mut result = KmeansLab::new();
+            let mut result = Kmeans::new();
             (0..opt.runs).for_each(|i| {
-                let run_result = get_kmeans_lab(
+                let run_result = get_kmeans(
                     opt.k,
                     opt.max_iter,
                     converge,
@@ -75,17 +69,17 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Print and/or sort results, output to palette
             if opt.print || opt.percentage || opt.palette {
-                let mut res = sort_indexed_colors_lab(&result.centroids, &result.indices);
+                let mut res = Lab::sort_indexed_colors(&result.centroids, &result.indices);
                 if opt.sort {
-                    res.sort_unstable_by(|a, b| (b.1).partial_cmp(&a.1).unwrap());
+                    res.sort_unstable_by(|a, b| (b.percentage).partial_cmp(&a.percentage).unwrap());
                 }
 
                 if opt.print || opt.percentage {
-                    print_colors_lab(opt.percentage, &res)?;
+                    print_colors(opt.percentage, &res)?;
                 }
 
                 if opt.palette {
-                    save_palette_lab(
+                    save_palette(
                         &res,
                         opt.proportional,
                         opt.height,
@@ -108,7 +102,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Convert indexed colors to Srgb colors to output as final result
             if !opt.transparent {
-                buffer = map_indices_to_colors_lab(&result.centroids, &result.indices);
+                buffer = Lab::map_indices_to_centroids(&result.centroids, &result.indices);
             } else {
                 // TODO: use get_closest_centroid to find/replace and preserve transparency
                 continue;
@@ -129,11 +123,11 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                     .collect();
             }
 
-            let mut result = KmeansRgb::new();
+            let mut result = Kmeans::new();
 
             // Iterate over amount of runs keeping best results
             (0..opt.runs).for_each(|i| {
-                let run_result = get_kmeans_rgb(
+                let run_result = get_kmeans(
                     opt.k,
                     opt.max_iter,
                     converge,
@@ -148,17 +142,17 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Print and/or sort results, output to palette
             if opt.print || opt.percentage || opt.palette {
-                let mut res = sort_indexed_colors_rgb(&result.centroids, &result.indices);
+                let mut res = Srgb::sort_indexed_colors(&result.centroids, &result.indices);
                 if opt.sort {
-                    res.sort_unstable_by(|a, b| (b.1).partial_cmp(&a.1).unwrap());
+                    res.sort_unstable_by(|a, b| (b.percentage).partial_cmp(&a.percentage).unwrap());
                 }
 
                 if opt.print || opt.percentage {
-                    print_colors_rgb(opt.percentage, &res)?;
+                    print_colors(opt.percentage, &res)?;
                 }
 
                 if opt.palette {
-                    save_palette_rgb(
+                    save_palette(
                         &res,
                         opt.proportional,
                         opt.height,
@@ -181,7 +175,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Convert indexed colors to Srgb colors to output as final result
             if !opt.transparent {
-                buffer = map_indices_to_colors_rgb(&result.centroids, &result.indices);
+                buffer = Srgb::map_indices_to_centroids(&result.centroids, &result.indices);
             } else {
                 // TODO:
                 continue;
@@ -259,14 +253,14 @@ pub fn find_colors(
 
                 // We only need to do one pass of getting the closest colors to the
                 // custom centroids
-                get_closest_centroid_lab(&lab, &centroids, &mut indices);
+                Lab::get_closest_centroid(&lab, &centroids, &mut indices);
 
                 if percentage {
-                    let res = sort_indexed_colors_lab(&centroids, &indices);
-                    print_colors_lab(percentage, &res)?;
+                    let res = Lab::sort_indexed_colors(&centroids, &indices);
+                    print_colors(percentage, &res)?;
                 }
 
-                let buffer = map_indices_to_colors_lab(&centroids, &indices);
+                let buffer = Lab::map_indices_to_centroids(&centroids, &indices);
                 save_image(
                     &buffer,
                     imgx,
@@ -289,11 +283,11 @@ pub fn find_colors(
                     .map(|x| x.into_format().into())
                     .collect();
 
-                let mut result = KmeansLab::new();
+                let mut result = Kmeans::new();
                 let k = centroids.len() as u8;
                 (0..runs).for_each(|i| {
                     let run_result =
-                        get_kmeans_lab(k, max_iter, converge, verbose, &lab, seed + i as u64);
+                        get_kmeans(k, max_iter, converge, verbose, &lab, seed + i as u64);
                     if run_result.score < result.score {
                         result = run_result;
                     }
@@ -304,18 +298,20 @@ pub fn find_colors(
                 // corresponds to the index of the colors from darkest to lightest.
                 // We replace the colors in `sorted` with our centroids for printing
                 // purposes.
-                let mut res = sort_indexed_colors_lab(&result.centroids, &result.indices);
-                res.iter_mut().zip(&centroids).for_each(|(s, c)| s.0 = *c);
+                let mut res = Lab::sort_indexed_colors(&result.centroids, &result.indices);
+                res.iter_mut()
+                    .zip(&centroids)
+                    .for_each(|(s, c)| s.centroid = *c);
 
                 if percentage {
-                    print_colors_lab(percentage, &res)?;
+                    print_colors(percentage, &res)?;
                 }
 
                 // Sorting the centroids now
-                res.sort_unstable_by(|a, b| (a.2).cmp(&b.2));
-                let sorted: Vec<Lab> = res.iter().map(|x| x.0).collect();
+                res.sort_unstable_by(|a, b| (a.index).cmp(&b.index));
+                let sorted: Vec<Lab> = res.iter().map(|x| x.centroid).collect();
 
-                let buffer = map_indices_to_colors_lab(&sorted, &result.indices);
+                let buffer = Lab::map_indices_to_centroids(&sorted, &result.indices);
                 save_image(
                     &buffer,
                     imgx,
@@ -354,14 +350,14 @@ pub fn find_colors(
 
                 // We only need to do one pass of getting the closest colors to the
                 // custom centroids
-                get_closest_centroid_rgb(&rgb, &centroids, &mut indices);
+                Srgb::get_closest_centroid(&rgb, &centroids, &mut indices);
 
                 if percentage {
-                    let res = sort_indexed_colors_rgb(&centroids, &indices);
-                    print_colors_rgb(percentage, &res)?;
+                    let res = Srgb::sort_indexed_colors(&centroids, &indices);
+                    print_colors(percentage, &res)?;
                 }
 
-                let buffer = map_indices_to_colors_rgb(&centroids, &indices);
+                let buffer = Srgb::map_indices_to_centroids(&centroids, &indices);
                 save_image(
                     &buffer,
                     imgx,
@@ -384,11 +380,11 @@ pub fn find_colors(
                     .map(|x| x.into_format().into())
                     .collect();
 
-                let mut result = KmeansRgb::new();
+                let mut result = Kmeans::new();
                 let k = centroids.len() as u8;
                 (0..runs).for_each(|i| {
                     let run_result =
-                        get_kmeans_rgb(k, max_iter, converge, verbose, &rgb, seed + i as u64);
+                        get_kmeans(k, max_iter, converge, verbose, &rgb, seed + i as u64);
                     if run_result.score < result.score {
                         result = run_result;
                     }
@@ -399,18 +395,20 @@ pub fn find_colors(
                 // corresponds to the index of the colors from darkest to lightest.
                 // We replace the colors in `sorted` with our centroids for printing
                 // purposes.
-                let mut res = sort_indexed_colors_rgb(&result.centroids, &result.indices);
-                res.iter_mut().zip(&centroids).for_each(|(s, c)| s.0 = *c);
+                let mut res = Srgb::sort_indexed_colors(&result.centroids, &result.indices);
+                res.iter_mut()
+                    .zip(&centroids)
+                    .for_each(|(s, c)| s.centroid = *c);
 
                 if percentage {
-                    print_colors_rgb(percentage, &res)?;
+                    print_colors(percentage, &res)?;
                 }
 
                 // Sorting the centroids now
-                res.sort_unstable_by(|a, b| (a.2).cmp(&b.2));
-                let sorted: Vec<Srgb> = res.iter().map(|x| x.0).collect();
+                res.sort_unstable_by(|a, b| (a.index).cmp(&b.index));
+                let sorted: Vec<Srgb> = res.iter().map(|x| x.centroid).collect();
 
-                let buffer = map_indices_to_colors_rgb(&sorted, &result.indices);
+                let buffer = Srgb::map_indices_to_centroids(&sorted, &result.indices);
                 save_image(
                     &buffer,
                     imgx,
