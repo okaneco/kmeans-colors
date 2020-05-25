@@ -6,7 +6,7 @@ use palette::{Lab, Pixel, Srgb, Srgba};
 use crate::args::Opt;
 use crate::filename::{create_filename, create_filename_palette};
 use crate::utils::{parse_color, print_colors, save_image, save_palette};
-use kmeans_colors::{get_kmeans, Calculate, Kmeans, Sort};
+use kmeans_colors::{get_kmeans, Calculate, Kmeans, MapColor, Sort};
 
 pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
     if opt.input.len() == 0 {
@@ -55,7 +55,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             let mut result = Kmeans::new();
             (0..opt.runs).for_each(|i| {
                 let run_result = get_kmeans(
-                    opt.k,
+                    opt.k as usize,
                     opt.max_iter,
                     converge,
                     opt.verbose,
@@ -128,7 +128,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             // Iterate over amount of runs keeping best results
             (0..opt.runs).for_each(|i| {
                 let run_result = get_kmeans(
-                    opt.k,
+                    opt.k as usize,
                     opt.max_iter,
                     converge,
                     opt.verbose,
@@ -286,8 +286,14 @@ pub fn find_colors(
                 let mut result = Kmeans::new();
                 let k = centroids.len() as u8;
                 (0..runs).for_each(|i| {
-                    let run_result =
-                        get_kmeans(k, max_iter, converge, verbose, &lab, seed + i as u64);
+                    let run_result = get_kmeans(
+                        k as usize,
+                        max_iter,
+                        converge,
+                        verbose,
+                        &lab,
+                        seed + i as u64,
+                    );
                     if run_result.score < result.score {
                         result = run_result;
                     }
@@ -381,7 +387,7 @@ pub fn find_colors(
                     .collect();
 
                 let mut result = Kmeans::new();
-                let k = centroids.len() as u8;
+                let k = centroids.len();
                 (0..runs).for_each(|i| {
                     let run_result =
                         get_kmeans(k, max_iter, converge, verbose, &rgb, seed + i as u64);

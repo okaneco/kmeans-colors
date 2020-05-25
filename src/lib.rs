@@ -50,7 +50,7 @@
 //!
 //! ```
 //! use palette::{Lab, Pixel, Srgb};
-//! use kmeans_colors::{get_kmeans, Calculate, Kmeans, Sort};
+//! use kmeans_colors::{get_kmeans, Calculate, Kmeans, MapColor, Sort};
 //!
 //! // An image buffer of one black pixel and one white pixel
 //! let img_vec = [0u8, 0, 0, 255, 255, 255];
@@ -157,6 +157,9 @@
 
 mod kmeans;
 mod sort;
+
+#[cfg(feature = "palette_color")]
+pub use kmeans::MapColor;
 
 pub use kmeans::{get_kmeans, Calculate, Kmeans};
 pub use sort::{CentroidData, Sort};

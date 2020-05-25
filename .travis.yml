@@ -17,6 +17,6 @@ branches:
 script:
   - cargo build -v --lib --no-default-features
   - cargo build -v --bins
-  - cargo test --features palette_color --no-default-features --lib
-  - cargo test --features palette_color --no-default-features --doc
+  - cargo test --no-default-features --lib --features palette_color
+  - cargo test --no-default-features --doc --features palette_color
   - cargo doc --no-deps

@@ -27,9 +27,6 @@ pub trait Calculate: Sized {
     /// Calculate the geometric distance between two points, the square root is
     /// omitted.
     fn difference(c1: &Self, c2: &Self) -> f32;
-
-    /// Map point indices to each centroid for output buffer.
-    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<u8>;
 }
 
 /// Result of k-means calculation with convergence score, centroids, and indexed
@@ -66,7 +63,7 @@ impl<C: Calculate> Kmeans<C> {
 /// - `buf` - array of points.
 /// - `seed` - seed for the random number generator.
 pub fn get_kmeans<C: Calculate + Clone>(
-    k: u8,
+    k: usize,
     max_iter: usize,
     converge: f32,
     verbose: bool,
@@ -75,7 +72,7 @@ pub fn get_kmeans<C: Calculate + Clone>(
 ) -> Kmeans<C> {
     // Initialize the random centroids
     let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(seed);
-    let mut centroids: Vec<C> = Vec::with_capacity(k as usize);
+    let mut centroids: Vec<C> = Vec::with_capacity(k);
     (0..k).for_each(|_| centroids.push(C::create_random(&mut rng)));
 
     // Initialize indexed buffer and convergence variables
@@ -192,20 +189,6 @@ impl Calculate for Lab {
             + (c1.a - c2.a) * (c1.a - c2.a)
             + (c1.b - c2.b) * (c1.b - c2.b)
     }
-
-    fn map_indices_to_centroids(centroids: &[Lab], indices: &[u8]) -> Vec<u8> {
-        let srgb: Vec<Srgb<u8>> = indices
-            .iter()
-            .map(|x| {
-                centroids
-                    .get(*x as usize)
-                    .unwrap_or_else(|| centroids.last().unwrap())
-            })
-            .map(|x| Srgb::from(*x).into_format())
-            .collect();
-
-        Srgb::into_raw_slice(&srgb).to_vec()
-    }
 }
 
 #[cfg(feature = "palette_color")]
@@ -280,7 +263,34 @@ impl Calculate for Srgb {
             + (c1.green - c2.green) * (c1.green - c2.green)
             + (c1.blue - c2.blue) * (c1.blue - c2.blue)
     }
+}
 
+/// A trait for mapping colors to their corresponding centroids.
+#[cfg(feature = "palette_color")]
+pub trait MapColor: Sized {
+    /// Map pixel indices to each centroid for output buffer.
+    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<u8>;
+}
+
+#[cfg(feature = "palette_color")]
+impl MapColor for Lab {
+    fn map_indices_to_centroids(centroids: &[Lab], indices: &[u8]) -> Vec<u8> {
+        let srgb: Vec<Srgb<u8>> = indices
+            .iter()
+            .map(|x| {
+                centroids
+                    .get(*x as usize)
+                    .unwrap_or_else(|| centroids.last().unwrap())
+            })
+            .map(|x| Srgb::from(*x).into_format())
+            .collect();
+
+        Srgb::into_raw_slice(&srgb).to_vec()
+    }
+}
+
+#[cfg(feature = "palette_color")]
+impl MapColor for Srgb {
     fn map_indices_to_centroids(centroids: &[Srgb], indices: &[u8]) -> Vec<u8> {
         let srgb: Vec<Srgb<u8>> = indices
             .iter()
