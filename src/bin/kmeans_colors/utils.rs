@@ -121,103 +121,64 @@ pub fn save_palette<C: Calculate + Copy + Into<Srgb>>(
     title: &PathBuf,
 ) -> Result<(), Box<dyn Error>> {
     let len = res.len() as u32;
-    let mut imgbuf: image::RgbImage;
-
-    match width {
-        Some(mut w) => {
+    let w = match width {
+        Some(x) => {
             // Width must be at least `k` pixels wide
-            if w < len {
-                w = len;
-            }
-
-            imgbuf = image::ImageBuffer::new(w, height);
-
-            if !proportional {
-                for (x, _, pixel) in imgbuf.enumerate_pixels_mut() {
-                    let color = Srgb::from(
-                        res.get(
-                            (((x as f32 / w as f32) * len as f32 - 0.5)
-                                .max(0.0)
-                                .min(len as f32))
-                            .round() as usize,
-                        )
-                        .unwrap()
-                        .centroid
-                        .into(),
-                    )
-                    .into_format()
-                    .into_raw();
-                    *pixel = image::Rgb(color);
-                }
+            if x < len {
+                len
             } else {
-                let mut curr_pos = 0;
-                if let Some((last, elements)) = res.split_last() {
-                    for r in elements.iter() {
-                        let pix: [u8; 3] = Srgb::from(r.centroid.into()).into_format().into_raw();
-                        // Clamp boundary to image width
-                        let boundary =
-                            ((curr_pos as f32 + (r.percentage * w as f32)).round() as u32).min(w);
-                        for y in 0..height {
-                            for x in curr_pos..boundary {
-                                imgbuf.put_pixel(x, y, image::Rgb(pix));
-                            }
-                        }
-                        // If boundary has been clamped, return early
-                        if boundary == w {
-                            return Ok(save_image(&imgbuf.to_vec(), w, height, title)?);
-                        }
-                        curr_pos = boundary;
-                    }
-                    let pix: [u8; 3] = Srgb::from(last.centroid.into()).into_format().into_raw();
-                    for y in 0..height {
-                        for x in curr_pos..w {
-                            imgbuf.put_pixel(x, y, image::Rgb(pix));
-                        }
-                    }
-                }
+                x
             }
-
-            Ok(save_image(&imgbuf.to_vec(), w, height, title)?)
         }
-        None => {
-            let w = height * len;
-            imgbuf = image::ImageBuffer::new(w, height);
-            if !proportional {
-                for (i, r) in res.iter().enumerate() {
-                    let pix: [u8; 3] = Srgb::from(r.centroid.into()).into_format().into_raw();
-                    for y in 0..height {
-                        for x in (i as u32 * height)..((i as u32 + 1) * height) {
-                            imgbuf.put_pixel(x, y, image::Rgb(pix));
-                        }
+        None => height * len,
+    };
+
+    let mut imgbuf: image::RgbImage = image::ImageBuffer::new(w, height);
+
+    if !proportional {
+        for (x, _, pixel) in imgbuf.enumerate_pixels_mut() {
+            let color = Srgb::from(
+                res.get(
+                    (((x as f32 / w as f32) * len as f32 - 0.5)
+                        .max(0.0)
+                        .min(len as f32))
+                    .round() as usize,
+                )
+                .unwrap()
+                .centroid
+                .into(),
+            )
+            .into_format()
+            .into_raw();
+            *pixel = image::Rgb(color);
+        }
+    } else {
+        let mut curr_pos = 0;
+        if let Some((last, elements)) = res.split_last() {
+            for r in elements.iter() {
+                let pix: [u8; 3] = Srgb::from(r.centroid.into()).into_format().into_raw();
+                // Clamp boundary to image width
+                let boundary =
+                    ((curr_pos as f32 + (r.percentage * w as f32)).round() as u32).min(w);
+                for y in 0..height {
+                    for x in curr_pos..boundary {
+                        imgbuf.put_pixel(x, y, image::Rgb(pix));
                     }
                 }
-            } else {
-                let mut curr_pos = 0;
-                if let Some((last, elements)) = res.split_last() {
-                    for r in elements.iter() {
-                        let pix: [u8; 3] = Srgb::from(r.centroid.into()).into_format().into_raw();
-                        let boundary =
-                            ((curr_pos as f32 + (r.percentage * w as f32)).round() as u32).min(w);
-                        for y in 0..height {
-                            for x in curr_pos..boundary {
-                                imgbuf.put_pixel(x, y, image::Rgb(pix));
-                            }
-                        }
-                        if boundary == w {
-                            return Ok(save_image(&imgbuf.to_vec(), w, height, title)?);
-                        }
-                        curr_pos = boundary;
-                    }
-                    let pix: [u8; 3] = Srgb::from(last.centroid.into()).into_format().into_raw();
-                    for y in 0..height {
-                        for x in curr_pos..w {
-                            imgbuf.put_pixel(x, y, image::Rgb(pix));
-                        }
-                    }
+                // If boundary has been clamped, return early
+                if boundary == w {
+                    return Ok(save_image(&imgbuf.to_vec(), w, height, title)?);
+                }
+                curr_pos = boundary;
+            }
+            let pix: [u8; 3] = Srgb::from(last.centroid.into()).into_format().into_raw();
+            for y in 0..height {
+                for x in curr_pos..w {
+                    imgbuf.put_pixel(x, y, image::Rgb(pix));
                 }
             }
-
-            Ok(save_image(&imgbuf.to_vec(), w, height, title)?)
         }
     }
+
+    Ok(save_image(&imgbuf.to_vec(), w, height, title)?)
 }
