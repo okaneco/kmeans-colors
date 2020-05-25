@@ -4,10 +4,13 @@ version = "0.2.0"
 authors = ["okaneco <47607823+okaneco@users.noreply.github.com>"]
 edition = "2018"
 exclude = ["test", "gfx"]
-description = "Simple k-means clustering to find dominant colors in images."
 homepage = "https://github.com/okaneco/kmeans-colors"
 repository = "https://github.com/okaneco/kmeans-colors"
 readme = "README.md"
+description = """
+Simple k-means clustering to find dominant colors in images.
+
+Backed by a generic k-means implementation offered as a standalone library."""
 
 keywords = ["kmeans", "clustering", "lab", "color", "rgb"]
 categories = ["graphics", "multimedia::images", "mathematics"]
@@ -18,7 +21,10 @@ license = "MIT OR Apache-2.0"
 default = ["app"]
 
 # Features required for building the binary
-app = ["image", "png", "structopt"]
+app = ["image", "png", "structopt", "palette_color"]
+
+# Enable `palette` color types
+palette_color = ["palette"]
 
 [dependencies.image]
 version = "0.23"
@@ -30,6 +36,7 @@ optional = true
 version = "0.5"
 default-features = false
 features = ["std"]
+optional = true
 
 [dependencies.png]
 version = "0.16"

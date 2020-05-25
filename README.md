@@ -14,7 +14,9 @@ step count is reached.
 
 The k-means can be used to find the dominant colors or color palette of an
 image. Some other applications are binarization, line extraction, and "color
-style" transfer.
+style" transfer. The crate wraps around a generic [k-means implementation][lib].
+
+[lib]: https://docs.rs/kmeans_colors/
 
 ## Examples
 

@@ -1,7 +1,9 @@
-use std::collections::HashMap;
-
+#[cfg(feature = "palette_color")]
 use palette::luma::Luma;
+#[cfg(feature = "palette_color")]
 use palette::{Lab, Srgb};
+#[cfg(feature = "palette_color")]
+use std::collections::HashMap;
 
 use crate::Calculate;
 
@@ -28,6 +30,7 @@ pub trait Sort: Sized + Calculate {
     fn sort_indexed_colors(centroids: &Vec<Self>, indices: &[u8]) -> Vec<CentroidData<Self>>;
 }
 
+#[cfg(feature = "palette_color")]
 impl Sort for Lab {
     fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self> {
         let res = data
@@ -89,6 +92,7 @@ impl Sort for Lab {
     }
 }
 
+#[cfg(feature = "palette_color")]
 impl Sort for Srgb {
     fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self> {
         let res = data
@@ -150,8 +154,10 @@ impl Sort for Srgb {
 #[cfg(test)]
 mod tests {
     use crate::{CentroidData, Sort};
+    #[cfg(feature = "palette_color")]
     use palette::Srgb;
 
+    #[cfg(feature = "palette_color")]
     #[test]
     fn dominant_color() {
         let res = vec![
