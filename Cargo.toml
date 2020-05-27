@@ -1,20 +1,19 @@
 [package]
 name = "kmeans_colors"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["okaneco <47607823+okaneco@users.noreply.github.com>"]
 edition = "2018"
 exclude = ["test", "gfx"]
 homepage = "https://github.com/okaneco/kmeans-colors"
 repository = "https://github.com/okaneco/kmeans-colors"
 readme = "README.md"
+keywords = ["kmeans", "clustering", "lab", "color", "rgb"]
+categories = ["graphics", "multimedia::images", "mathematics"]
+license = "MIT OR Apache-2.0"
 description = """
 Simple k-means clustering to find dominant colors in images.
 
 Backed by a generic k-means implementation offered as a standalone library."""
-
-keywords = ["kmeans", "clustering", "lab", "color", "rgb"]
-categories = ["graphics", "multimedia::images", "mathematics"]
-license = "MIT OR Apache-2.0"
 
 [features]
 # Use default-features=false if using as a library

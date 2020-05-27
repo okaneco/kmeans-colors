@@ -190,6 +190,11 @@ smaller `k` values (below ~40) in a reasonable amount of time. Finding the
 `--rgb` k-means converges very quickly and tends to happen in under 10
 iterations for small `k`.
 
+The `--transparent` flag can be passed when working with transparent PNG images.
+The k-means will be calculated without factoring in any pixels with
+transparency. Otherwise, transparent pixels become matte and negatively impact
+the results.
+
 ## Features
 - create a color palette from an image
 - Lab space or RGB space calculations
@@ -198,6 +203,7 @@ iterations for small `k`.
 - adjustable iteration count and repetition
 - print the average colors
 - print the percentage of each color in the image
+- transparency support
 - supports multiple images as input to process
 - specify random seed for reproducible results
 

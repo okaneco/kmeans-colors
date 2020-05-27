@@ -101,7 +101,7 @@
 //! RGB usually converges in under 10 iterations depending on the `k`. The
 //! convergence factor defaults to `10.0` for `Lab` and `0.0025` for `Srgb`. The
 //! number of runs defaults to `3` for one of the binary subcommands. Through
-//! testing, these numbers were found to be an adequate tradeoff between
+//! testing, these numbers were found to be an adequate trade-off between
 //! performance and accuracy. If the results do not appear correct, raise the
 //! iteration limit as convergence was probably not met.
 //!
