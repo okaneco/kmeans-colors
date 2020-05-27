@@ -112,6 +112,43 @@ pub fn save_image(
     Ok(())
 }
 
+/// Saves transparent image buffer to file.
+pub fn save_image_alpha(
+    imgbuf: &[u8],
+    imgx: u32,
+    imgy: u32,
+    title: &PathBuf,
+) -> Result<(), Box<dyn Error>> {
+    let mut w = BufWriter::new(File::create(title)?);
+    if title.extension().unwrap() == "png" {
+        let mut enc = png::Encoder::new(w, imgx, imgy);
+        enc.set_color(png::ColorType::RGBA);
+        enc.set_compression(png::Compression::Best);
+        enc.set_filter(png::FilterType::NoFilter);
+
+        // Clean up if file is created but there's a problem writing to it
+        match enc.write_header()?.write_image_data(imgbuf) {
+            Ok(_) => {}
+            Err(err) => {
+                eprintln!("Error: {}.", err);
+                std::fs::remove_file(title)?;
+            }
+        }
+    } else {
+        let mut encoder = image::jpeg::JPEGEncoder::new_with_quality(&mut w, 90);
+
+        match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgba8) {
+            Ok(_) => {}
+            Err(err) => {
+                eprintln!("Error: {}.", err);
+                std::fs::remove_file(title)?;
+            }
+        }
+    };
+
+    Ok(())
+}
+
 /// Save palette image file.
 pub fn save_palette<C: Calculate + Copy + Into<Srgb>>(
     res: &[CentroidData<C>],
