@@ -5,7 +5,7 @@ use palette::{Lab, Pixel, Srgb, Srgba};
 
 use crate::args::Opt;
 use crate::filename::{create_filename, create_filename_palette};
-use crate::utils::{parse_color, print_colors, save_image, save_palette};
+use crate::utils::{parse_color, print_colors, save_image, save_image_alpha, save_palette};
 use kmeans_colors::{get_kmeans, Calculate, Kmeans, MapColor, Sort};
 
 pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
@@ -25,7 +25,6 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
         let img = image::open(&file)?.to_rgba();
         let (imgx, imgy) = (img.dimensions().0, img.dimensions().1);
         let img_vec = img.into_raw();
-        let buffer;
         let converge;
         match opt.factor {
             Some(x) => converge = x,
@@ -102,10 +101,55 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Convert indexed colors to Srgb colors to output as final result
             if !opt.transparent {
-                buffer = Lab::map_indices_to_centroids(&result.centroids, &result.indices);
+                // Convert centroids to Srgb<u8> before mapping to buffer
+                let centroids = &result
+                    .centroids
+                    .iter()
+                    .map(|x| Srgb::from(*x).into_format())
+                    .collect::<Vec<Srgb<u8>>>();
+                let lab: Vec<Srgb<u8>> = Srgb::map_indices_to_centroids(centroids, &result.indices);
+
+                save_image(
+                    Srgb::into_raw_slice(&lab),
+                    imgx,
+                    imgy,
+                    &create_filename(&opt.input, &opt.output, &opt.extension, Some(opt.k), file)?,
+                )?;
             } else {
-                // TODO: use get_closest_centroid to find/replace and preserve transparency
-                continue;
+                // For transparent images, we get_closest_centroid based
+                // on the centroids we calculated and only paint in the pixels
+                // that have a full alpha
+                let mut indices = Vec::with_capacity(img_vec.len());
+                let lab: Vec<Lab> = Srgba::from_raw_slice(&img_vec)
+                    .iter()
+                    .map(|x| x.into_format().into())
+                    .collect();
+                Lab::get_closest_centroid(&lab, &result.centroids, &mut indices);
+
+                let centroids = &result
+                    .centroids
+                    .iter()
+                    .map(|x| Srgba::from(*x).into_format())
+                    .collect::<Vec<Srgba<u8>>>();
+
+                let data = Srgba::from_raw_slice(&img_vec);
+                let lab: Vec<Srgba<u8>> = Srgba::map_indices_to_centroids(&centroids, &indices)
+                    .iter()
+                    .zip(data)
+                    .map(|(x, orig)| {
+                        if orig.alpha == 255 {
+                            *x
+                        } else {
+                            Srgba::new(0u8, 0, 0, 0)
+                        }
+                    })
+                    .collect();
+                save_image_alpha(
+                    Srgba::into_raw_slice(&lab),
+                    imgx,
+                    imgy,
+                    &create_filename(&opt.input, &opt.output, &opt.extension, Some(opt.k), file)?,
+                )?;
             }
         } else {
             // Read image buffer into Srgb format
@@ -175,19 +219,57 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Convert indexed colors to Srgb colors to output as final result
             if !opt.transparent {
-                buffer = Srgb::map_indices_to_centroids(&result.centroids, &result.indices);
+                // Pre-convert centroids into output format
+                let centroids = &result
+                    .centroids
+                    .iter()
+                    .map(|x| x.into_format())
+                    .collect::<Vec<Srgb<u8>>>();
+                let rgb: Vec<Srgb<u8>> = Srgb::map_indices_to_centroids(centroids, &result.indices);
+
+                save_image(
+                    Srgb::into_raw_slice(&rgb),
+                    imgx,
+                    imgy,
+                    &create_filename(&opt.input, &opt.output, &opt.extension, Some(opt.k), file)?,
+                )?;
             } else {
-                // TODO:
-                continue;
+                // For transparent images, we get_closest_centroid based
+                // on the centroids we calculated and only paint in the pixels
+                // that have a full alpha
+                let mut indices = Vec::with_capacity(img_vec.len());
+                let rgb: Vec<Srgb> = Srgba::from_raw_slice(&img_vec)
+                    .iter()
+                    .map(|x| x.into_format().into())
+                    .collect();
+                Srgb::get_closest_centroid(&rgb, &result.centroids, &mut indices);
+
+                let centroids = &result
+                    .centroids
+                    .iter()
+                    .map(|x| x.into_format().into())
+                    .collect::<Vec<Srgba<u8>>>();
+
+                let data = Srgba::from_raw_slice(&img_vec);
+                let rgb: Vec<Srgba<u8>> = Srgba::map_indices_to_centroids(&centroids, &indices)
+                    .iter()
+                    .zip(data)
+                    .map(|(x, orig)| {
+                        if orig.alpha == 255 {
+                            *x
+                        } else {
+                            Srgba::new(0u8, 0, 0, 0)
+                        }
+                    })
+                    .collect();
+                save_image_alpha(
+                    Srgba::into_raw_slice(&rgb),
+                    imgx,
+                    imgy,
+                    &create_filename(&opt.input, &opt.output, &opt.extension, Some(opt.k), file)?,
+                )?;
             }
         }
-
-        save_image(
-            &buffer,
-            imgx,
-            imgy,
-            &create_filename(&opt.input, &opt.output, &opt.extension, Some(opt.k), file)?,
-        )?;
     }
 
     Ok(())
@@ -260,9 +342,14 @@ pub fn find_colors(
                     print_colors(percentage, &res)?;
                 }
 
-                let buffer = Lab::map_indices_to_centroids(&centroids, &indices);
+                let rgb_centroids = &centroids
+                    .iter()
+                    .map(|x| Srgb::from(*x).into_format())
+                    .collect::<Vec<Srgb<u8>>>();
+                let lab: Vec<Srgb<u8>> = Srgb::map_indices_to_centroids(&rgb_centroids, &indices);
+
                 save_image(
-                    &buffer,
+                    Srgb::into_raw_slice(&lab),
                     imgx,
                     imgy,
                     &create_filename(&input, &output, "png", None, file)?,
@@ -317,9 +404,15 @@ pub fn find_colors(
                 res.sort_unstable_by(|a, b| (a.index).cmp(&b.index));
                 let sorted: Vec<Lab> = res.iter().map(|x| x.centroid).collect();
 
-                let buffer = Lab::map_indices_to_centroids(&sorted, &result.indices);
+                let rgb_centroids = &sorted
+                    .iter()
+                    .map(|x| Srgb::from(*x).into_format())
+                    .collect::<Vec<Srgb<u8>>>();
+                let lab: Vec<Srgb<u8>> =
+                    Srgb::map_indices_to_centroids(&rgb_centroids, &result.indices);
+
                 save_image(
-                    &buffer,
+                    Srgb::into_raw_slice(&lab),
                     imgx,
                     imgy,
                     &create_filename(&input, &output, "png", None, file)?,
@@ -363,9 +456,14 @@ pub fn find_colors(
                     print_colors(percentage, &res)?;
                 }
 
-                let buffer = Srgb::map_indices_to_centroids(&centroids, &indices);
+                let rgb_centroids = &centroids
+                    .iter()
+                    .map(|x| x.into_format())
+                    .collect::<Vec<Srgb<u8>>>();
+                let rgb: Vec<Srgb<u8>> = Srgb::map_indices_to_centroids(&rgb_centroids, &indices);
+
                 save_image(
-                    &buffer,
+                    Srgb::into_raw_slice(&rgb),
                     imgx,
                     imgy,
                     &create_filename(&input, &output, "png", None, file)?,
@@ -414,9 +512,15 @@ pub fn find_colors(
                 res.sort_unstable_by(|a, b| (a.index).cmp(&b.index));
                 let sorted: Vec<Srgb> = res.iter().map(|x| x.centroid).collect();
 
-                let buffer = Srgb::map_indices_to_centroids(&sorted, &result.indices);
+                let rgb_centroids = &sorted
+                    .iter()
+                    .map(|x| x.into_format())
+                    .collect::<Vec<Srgb<u8>>>();
+                let rgb: Vec<Srgb<u8>> =
+                    Srgb::map_indices_to_centroids(&rgb_centroids, &result.indices);
+
                 save_image(
-                    &buffer,
+                    Srgb::into_raw_slice(&rgb),
                     imgx,
                     imgy,
                     &create_filename(&input, &output, "png", None, file)?,

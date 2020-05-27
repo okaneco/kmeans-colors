@@ -134,9 +134,9 @@ pub struct Opt {
     #[structopt(subcommand, name = "command")]
     pub cmd: Option<Command>,
 
-    /// Ignore alpha channel values for calculation of k-means, does not output
-    /// an image but will output palettes.
-    #[structopt(long, hidden = true)]
+    /// Ignore pixels with any transparency for calculation of k-means, produce
+    /// transparent output image.
+    #[structopt(long)]
     pub transparent: bool,
 }
 

@@ -1,5 +1,7 @@
 #[cfg(feature = "palette_color")]
-use palette::{Lab, Pixel, Srgb};
+use palette::white_point::WhitePoint;
+#[cfg(feature = "palette_color")]
+use palette::{Component, Lab, Laba, Srgb, Srgba};
 
 use rand::{Rng, SeedableRng};
 
@@ -9,12 +11,12 @@ pub trait Calculate: Sized {
     fn get_closest_centroid(buffer: &[Self], centroids: &[Self], indices: &mut Vec<u8>);
 
     /// Find the new centroid locations based on the average of the points that
-    /// correspond to the centroid. If no point correspond, the centroid is
+    /// correspond to the centroid. If no points correspond, the centroid is
     /// re-initialized with a random point.
     fn recalculate_centroids(
         rng: &mut impl Rng,
-        centroids: &mut [Self],
         buf: &[Self],
+        centroids: &mut [Self],
         indices: &[u8],
     );
 
@@ -51,10 +53,11 @@ impl<C: Calculate> Kmeans<C> {
     }
 }
 
-/// Find the k-means centroids of a buffer. `max_iter` and `converge` are used
-/// together to determine when the k-means calculation has converged. When the
-/// `score` is less than `converge` or the number of iterations reaches
-/// `max_iter`, the calculation is complete.
+/// Find the k-means centroids of a buffer.
+///
+/// `max_iter` and `converge` are used together to determine when the k-means
+/// calculation has converged. When the `score` is less than `converge` or the
+/// number of iterations reaches `max_iter`, the calculation is complete.
 ///
 /// - `k` - number of clusters.
 /// - `max_iter` - maximum number of iterations.
@@ -84,7 +87,7 @@ pub fn get_kmeans<C: Calculate + Clone>(
     // Main loop: find nearest centroids and recalculate means until convergence
     loop {
         C::get_closest_centroid(&buf, &centroids, &mut indices);
-        C::recalculate_centroids(&mut rng, &mut centroids, &buf, &indices);
+        C::recalculate_centroids(&mut rng, &buf, &mut centroids, &indices);
 
         score = C::check_loop(&centroids, &old_centroids);
         if verbose {
@@ -133,15 +136,15 @@ impl Calculate for Lab {
 
     fn recalculate_centroids(
         mut rng: &mut impl Rng,
-        centroids: &mut [Lab],
         buf: &[Lab],
+        centroids: &mut [Lab],
         indices: &[u8],
     ) {
         for (idx, cent) in centroids.iter_mut().enumerate() {
             let mut l = 0.0;
             let mut a = 0.0;
             let mut b = 0.0;
-            let mut counter: u32 = 0;
+            let mut counter: u64 = 0;
             for (jdx, color) in indices.iter().zip(buf) {
                 if *jdx == idx as u8 {
                     l += color.l;
@@ -176,6 +179,7 @@ impl Calculate for Lab {
         l * l + a * a + b * b
     }
 
+    #[inline]
     fn create_random(rng: &mut impl Rng) -> Lab {
         Lab::new(
             rng.gen_range(0.0, 100.0),
@@ -184,6 +188,7 @@ impl Calculate for Lab {
         )
     }
 
+    #[inline]
     fn difference(c1: &Lab, c2: &Lab) -> f32 {
         (c1.l - c2.l) * (c1.l - c2.l)
             + (c1.a - c2.a) * (c1.a - c2.a)
@@ -211,15 +216,15 @@ impl Calculate for Srgb {
 
     fn recalculate_centroids(
         mut rng: &mut impl Rng,
-        centroids: &mut [Srgb],
         buf: &[Srgb],
+        centroids: &mut [Srgb],
         indices: &[u8],
     ) {
         for (idx, cent) in centroids.iter_mut().enumerate() {
             let mut red = 0.0;
             let mut green = 0.0;
             let mut blue = 0.0;
-            let mut counter: u32 = 0;
+            let mut counter: u64 = 0;
             for (jdx, color) in indices.iter().zip(buf) {
                 if *jdx == idx as u8 {
                     red += color.red;
@@ -254,10 +259,12 @@ impl Calculate for Srgb {
         red * red + green * green + blue * blue
     }
 
+    #[inline]
     fn create_random(rng: &mut impl Rng) -> Srgb {
         Srgb::new(rng.gen(), rng.gen(), rng.gen())
     }
 
+    #[inline]
     fn difference(c1: &Srgb, c2: &Srgb) -> f32 {
         (c1.red - c2.red) * (c1.red - c2.red)
             + (c1.green - c2.green) * (c1.green - c2.green)
@@ -269,39 +276,77 @@ impl Calculate for Srgb {
 #[cfg(feature = "palette_color")]
 pub trait MapColor: Sized {
     /// Map pixel indices to each centroid for output buffer.
-    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<u8>;
+    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self>;
 }
 
 #[cfg(feature = "palette_color")]
-impl MapColor for Lab {
-    fn map_indices_to_centroids(centroids: &[Lab], indices: &[u8]) -> Vec<u8> {
-        let srgb: Vec<Srgb<u8>> = indices
+impl<Wp> MapColor for Lab<Wp>
+where
+    Wp: WhitePoint,
+{
+    #[inline]
+    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
+        indices
             .iter()
             .map(|x| {
-                centroids
+                *centroids
                     .get(*x as usize)
                     .unwrap_or_else(|| centroids.last().unwrap())
             })
-            .map(|x| Srgb::from(*x).into_format())
-            .collect();
-
-        Srgb::into_raw_slice(&srgb).to_vec()
+            .collect()
     }
 }
 
 #[cfg(feature = "palette_color")]
-impl MapColor for Srgb {
-    fn map_indices_to_centroids(centroids: &[Srgb], indices: &[u8]) -> Vec<u8> {
-        let srgb: Vec<Srgb<u8>> = indices
+impl<Wp> MapColor for Laba<Wp>
+where
+    Wp: WhitePoint,
+{
+    #[inline]
+    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
+        indices
             .iter()
             .map(|x| {
-                centroids
+                *centroids
                     .get(*x as usize)
                     .unwrap_or_else(|| centroids.last().unwrap())
-                    .into_format()
             })
-            .collect();
+            .collect()
+    }
+}
 
-        Srgb::into_raw_slice(&srgb).to_vec()
+#[cfg(feature = "palette_color")]
+impl<C> MapColor for Srgb<C>
+where
+    C: Component,
+{
+    #[inline]
+    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
+        indices
+            .iter()
+            .map(|x| {
+                *centroids
+                    .get(*x as usize)
+                    .unwrap_or_else(|| centroids.last().unwrap())
+            })
+            .collect()
+    }
+}
+
+#[cfg(feature = "palette_color")]
+impl<C> MapColor for Srgba<C>
+where
+    C: Component,
+{
+    #[inline]
+    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
+        indices
+            .iter()
+            .map(|x| {
+                *centroids
+                    .get(*x as usize)
+                    .unwrap_or_else(|| centroids.last().unwrap())
+            })
+            .collect()
     }
 }

@@ -22,7 +22,7 @@
 //! ## The `Calculate` trait
 //! k-means calculations can be provided for other data types by implementing
 //! the [`Calculate`](trait.Calculate.html) trait. See the `Lab` and `Srgb`
-//! implementations in [`kmeans.rs`](../src/kmeans_colors/kmeans.rs.html#120)
+//! implementations in [`kmeans.rs`](../src/kmeans_colors/kmeans.rs.html#119)
 //! for examples.
 //!
 //! ## Calculating k-means with `palette_color`
@@ -67,7 +67,7 @@
 //!     .map(|x| x.into_format().into())
 //!     .collect();
 //!
-//! // Iterate over amount of runs keeping best results
+//! // Iterate over the runs, keep the best results
 //! let mut result = Kmeans::new();
 //! (0..runs).for_each(|i| {
 //!     let run_result = get_kmeans(
@@ -83,9 +83,13 @@
 //!     }
 //! });
 //!
-//! // Convert indexed colors back to RGB [u8] for output
-//! let buffer = Lab::map_indices_to_centroids(&result.centroids, &result.indices);
-//! # assert_eq!(buffer, [119, 119, 119, 119, 119, 119]);
+//! // Convert indexed colors back to Srgb<u8> for output
+//! let rgb = &result.centroids
+//!     .iter()
+//!     .map(|x| Srgb::from(*x).into_format())
+//!     .collect::<Vec<Srgb<u8>>>();
+//! let buffer = Srgb::map_indices_to_centroids(&rgb, &result.indices);
+//! # assert_eq!(Srgb::into_raw_slice(&buffer), [119, 119, 119, 119, 119, 119]);
 //! ```
 //!
 //! Because the initial seeds are random, the k-means calculation should be run
