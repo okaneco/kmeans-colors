@@ -68,7 +68,7 @@
 //!     .collect();
 //!
 //! // Iterate over the runs, keep the best results
-//! let mut result = Kmeans::new();
+//! let mut result: Kmeans<Lab, f32, u8> = Kmeans::new();
 //! (0..runs).for_each(|i| {
 //!     let run_result = get_kmeans(
 //!         k,
@@ -117,6 +117,7 @@
 //! # use palette::{Lab, Pixel, Srgb};
 //! # use kmeans_colors::{get_kmeans, Kmeans};
 //! use kmeans_colors::Sort;
+//! use palette::white_point::D65;
 //!
 //! # let img_vec = [0u8, 0, 0, 255, 255, 255];
 //! # let runs = 3;
@@ -144,10 +145,10 @@
 //! #     }
 //! # });
 //! // Using the results from the previous example, process the centroid data
-//! let mut res = Lab::sort_indexed_colors(&result.centroids, &result.indices);
+//! let mut res = Lab::sort_indexed_colors::<Lab, f32, u8>(&result.centroids, &result.indices);
 //!
 //! // We can find the dominant color directly
-//! let dominant_color = Lab::get_dominant_color(&res);
+//! let dominant_color = Lab::<D65>::get_dominant_color(&res);
 //! # assert_eq!(
 //! #    Srgb::from(dominant_color.unwrap()).into_format::<u8>(),
 //! #    Srgb::new(119u8, 119, 119)
@@ -164,6 +165,8 @@ mod sort;
 
 #[cfg(feature = "palette_color")]
 pub use kmeans::MapColor;
+#[cfg(feature = "palette_color")]
+pub use sort::Sort;
 
 pub use kmeans::{get_kmeans, Calculate, Kmeans};
-pub use sort::{CentroidData, Sort};
+pub use sort::CentroidData;

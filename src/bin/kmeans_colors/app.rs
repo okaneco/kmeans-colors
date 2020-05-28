@@ -68,7 +68,8 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Print and/or sort results, output to palette
             if opt.print || opt.percentage || opt.palette {
-                let mut res = Lab::sort_indexed_colors(&result.centroids, &result.indices);
+                let mut res =
+                    Lab::sort_indexed_colors::<Lab, f32, _>(&result.centroids, &result.indices);
                 if opt.sort {
                     res.sort_unstable_by(|a, b| (b.percentage).partial_cmp(&a.percentage).unwrap());
                 }
@@ -119,7 +120,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                 // For transparent images, we get_closest_centroid based
                 // on the centroids we calculated and only paint in the pixels
                 // that have a full alpha
-                let mut indices = Vec::with_capacity(img_vec.len());
+                let mut indices: Vec<u8> = Vec::with_capacity(img_vec.len());
                 let lab: Vec<Lab> = Srgba::from_raw_slice(&img_vec)
                     .iter()
                     .map(|x| x.into_format().into())
@@ -186,7 +187,8 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Print and/or sort results, output to palette
             if opt.print || opt.percentage || opt.palette {
-                let mut res = Srgb::sort_indexed_colors(&result.centroids, &result.indices);
+                let mut res =
+                    Srgb::sort_indexed_colors::<Srgb, f32, _>(&result.centroids, &result.indices);
                 if opt.sort {
                     res.sort_unstable_by(|a, b| (b.percentage).partial_cmp(&a.percentage).unwrap());
                 }
@@ -237,7 +239,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                 // For transparent images, we get_closest_centroid based
                 // on the centroids we calculated and only paint in the pixels
                 // that have a full alpha
-                let mut indices = Vec::with_capacity(img_vec.len());
+                let mut indices: Vec<u8> = Vec::with_capacity(img_vec.len());
                 let rgb: Vec<Srgb> = Srgba::from_raw_slice(&img_vec)
                     .iter()
                     .map(|x| x.into_format().into())
@@ -338,7 +340,7 @@ pub fn find_colors(
                 Lab::get_closest_centroid(&lab, &centroids, &mut indices);
 
                 if percentage {
-                    let res = Lab::sort_indexed_colors(&centroids, &indices);
+                    let res = Lab::sort_indexed_colors::<Lab, _, _>(&centroids, &indices);
                     print_colors(percentage, &res)?;
                 }
 
@@ -391,7 +393,8 @@ pub fn find_colors(
                 // corresponds to the index of the colors from darkest to lightest.
                 // We replace the colors in `sorted` with our centroids for printing
                 // purposes.
-                let mut res = Lab::sort_indexed_colors(&result.centroids, &result.indices);
+                let mut res =
+                    Lab::sort_indexed_colors::<Lab, _, _>(&result.centroids, &result.indices);
                 res.iter_mut()
                     .zip(&centroids)
                     .for_each(|(s, c)| s.centroid = *c);
@@ -452,7 +455,7 @@ pub fn find_colors(
                 Srgb::get_closest_centroid(&rgb, &centroids, &mut indices);
 
                 if percentage {
-                    let res = Srgb::sort_indexed_colors(&centroids, &indices);
+                    let res = Srgb::sort_indexed_colors::<Srgb, _, _>(&centroids, &indices);
                     print_colors(percentage, &res)?;
                 }
 
@@ -499,7 +502,8 @@ pub fn find_colors(
                 // corresponds to the index of the colors from darkest to lightest.
                 // We replace the colors in `sorted` with our centroids for printing
                 // purposes.
-                let mut res = Srgb::sort_indexed_colors(&result.centroids, &result.indices);
+                let mut res =
+                    Srgb::sort_indexed_colors::<Srgb, _, _>(&result.centroids, &result.indices);
                 res.iter_mut()
                     .zip(&centroids)
                     .for_each(|(s, c)| s.centroid = *c);

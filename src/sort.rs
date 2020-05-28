@@ -1,38 +1,68 @@
+use core::convert::TryFrom;
+#[cfg(feature = "palette_color")]
+use core::hash::Hash;
+#[cfg(feature = "palette_color")]
+use std::collections::HashMap;
+
 #[cfg(feature = "palette_color")]
 use palette::luma::Luma;
 #[cfg(feature = "palette_color")]
-use palette::{Lab, Srgb};
+use palette::white_point::WhitePoint;
 #[cfg(feature = "palette_color")]
-use std::collections::HashMap;
+use palette::{Lab, Srgb};
+
+use num_traits::Float;
 
 use crate::Calculate;
 
 /// A struct containing a centroid, its percentage within a buffer, and the
 /// centroid's index.
 #[derive(Clone, Debug, Default)]
-pub struct CentroidData<C: Calculate> {
+pub struct CentroidData<C, T = f32, U = u8>
+where
+    C: Calculate,
+    T: Float,
+    U: TryFrom<usize>,
+{
     /// A k-means centroid.
     pub centroid: C,
     /// The percentage a centroid appears in a buffer.
-    pub percentage: f32,
+    pub percentage: T,
     /// The centroid's index.
-    pub index: u8,
+    pub index: U,
 }
 
 /// A trait for sorting indexed k-means colors.
+#[cfg(feature = "palette_color")]
 pub trait Sort: Sized + Calculate {
     /// Returns the centroid with the largest percentage.
-    fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self>;
+    fn get_dominant_color<C, T, U>(data: &[CentroidData<C, T, U>]) -> Option<C>
+    where
+        C: Copy + Calculate,
+        T: Float,
+        U: TryFrom<usize>;
 
     /// Sorts centroids by luminosity and calculates the percentage of each
     /// color in the buffer. Returns a `CentroidResult` sorted from darkest to
     /// lightest.
-    fn sort_indexed_colors(centroids: &Vec<Self>, indices: &[u8]) -> Vec<CentroidData<Self>>;
+    fn sort_indexed_colors<C, T, U>(
+        centroids: &Vec<Self>,
+        indices: &[U],
+    ) -> Vec<CentroidData<Self, T, U>>
+    where
+        C: Calculate,
+        T: Float,
+        U: Copy + Eq + Hash + Into<usize> + TryFrom<usize>;
 }
 
 #[cfg(feature = "palette_color")]
-impl Sort for Lab {
-    fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self> {
+impl<Wp: WhitePoint> Sort for Lab<Wp> {
+    fn get_dominant_color<C, T, U>(data: &[CentroidData<C, T, U>]) -> Option<C>
+    where
+        C: Copy + Calculate,
+        T: Float,
+        U: TryFrom<usize>,
+    {
         let res = data
             .iter()
             .max_by(|a, b| (a.percentage).partial_cmp(&b.percentage).unwrap())
@@ -41,11 +71,19 @@ impl Sort for Lab {
         Some(res.centroid)
     }
 
-    fn sort_indexed_colors(centroids: &Vec<Self>, indices: &[u8]) -> Vec<CentroidData<Self>> {
+    fn sort_indexed_colors<C, T, U>(
+        centroids: &Vec<Self>,
+        indices: &[U],
+    ) -> Vec<CentroidData<Self, T, U>>
+    where
+        C: Calculate,
+        T: Float,
+        U: Copy + Eq + Hash + Into<usize> + TryFrom<usize>,
+    {
         // Count occurences of each color - "histogram"
-        let mut map: HashMap<u8, u32> = HashMap::new();
+        let mut map: HashMap<U, u64> = HashMap::new();
         for (i, _) in centroids.iter().enumerate() {
-            map.insert(i as u8, 0);
+            map.insert(U::try_from(i).ok().unwrap(), 0);
         }
         for i in indices {
             let count = map.entry(*i).or_insert(0);
@@ -53,20 +91,23 @@ impl Sort for Lab {
         }
 
         let len = indices.len();
-        let mut colors: Vec<(u8, f32)> = Vec::with_capacity(centroids.len());
+        let mut colors: Vec<(U, T)> = Vec::with_capacity(centroids.len());
         for (i, _) in centroids.iter().enumerate() {
-            let count = map.get(&(i as u8));
+            let count = map.get(&U::try_from(i).ok().unwrap());
             match count {
-                Some(x) => colors.push((i as u8, (*x as f32) / (len as f32))),
+                Some(x) => colors.push((
+                    U::try_from(i).ok().unwrap(),
+                    T::from((*x as f32) / (len as f32)).unwrap(),
+                )),
                 None => continue,
             }
         }
 
         // Sort by increasing luminosity
-        let mut lab: Vec<(u8, Lab)> = centroids
+        let mut lab: Vec<(U, Lab<Wp>)> = centroids
             .iter()
             .enumerate()
-            .map(|(i, x)| (i as u8, *x))
+            .map(|(i, x)| (U::try_from(i).ok().unwrap(), *x))
             .collect();
         lab.sort_unstable_by(|a, b| (a.1.l).partial_cmp(&b.1.l).unwrap());
 
@@ -77,12 +118,14 @@ impl Sort for Lab {
         lab.iter()
             .filter_map(|x| map.get_key_value(&x.0))
             .filter(|x| *x.1 > 0)
-            .filter_map(|x| match colors.get(*x.0 as usize) {
-                Some(x) => match colors.iter().position(|a| a.0 == x.0 as u8) {
+            .filter_map(|x| match colors.get(usize::try_from(*x.0).unwrap()) {
+                Some(x) => match colors.iter().position(|a| a.0 == x.0) {
                     Some(y) => Some(CentroidData {
-                        centroid: *(centroids.get(colors.get(y).unwrap().0 as usize).unwrap()),
+                        centroid: *(centroids
+                            .get(usize::try_from(colors.get(y).unwrap().0).unwrap())
+                            .unwrap()),
                         percentage: colors.get(y).unwrap().1,
-                        index: y as u8,
+                        index: U::try_from(y).ok().unwrap(),
                     }),
                     None => None,
                 },
@@ -94,7 +137,12 @@ impl Sort for Lab {
 
 #[cfg(feature = "palette_color")]
 impl Sort for Srgb {
-    fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self> {
+    fn get_dominant_color<C, T, U>(data: &[CentroidData<C, T, U>]) -> Option<C>
+    where
+        C: Copy + Calculate,
+        T: Float,
+        U: TryFrom<usize>,
+    {
         let res = data
             .iter()
             .max_by(|a, b| (a.percentage).partial_cmp(&b.percentage).unwrap())
@@ -103,11 +151,19 @@ impl Sort for Srgb {
         Some(res.centroid)
     }
 
-    fn sort_indexed_colors(centroids: &Vec<Self>, indices: &[u8]) -> Vec<CentroidData<Self>> {
+    fn sort_indexed_colors<C, T, U>(
+        centroids: &Vec<Self>,
+        indices: &[U],
+    ) -> Vec<CentroidData<Self, T, U>>
+    where
+        C: Calculate,
+        T: Float,
+        U: Copy + Eq + Hash + Into<usize> + TryFrom<usize>,
+    {
         // Count occurences of each color - "histogram"
-        let mut map: HashMap<u8, u32> = HashMap::new();
+        let mut map: HashMap<U, u64> = HashMap::new();
         for (i, _) in centroids.iter().enumerate() {
-            map.insert(i as u8, 0);
+            map.insert(U::try_from(i).ok().unwrap(), 0);
         }
         for i in indices {
             let count = map.entry(*i).or_insert(0);
@@ -115,20 +171,23 @@ impl Sort for Srgb {
         }
 
         let len = indices.len();
-        let mut colors: Vec<(u8, f32)> = Vec::with_capacity(centroids.len());
+        let mut colors: Vec<(U, T)> = Vec::with_capacity(centroids.len());
         for (i, _) in centroids.iter().enumerate() {
-            let count = map.get(&(i as u8));
+            let count = map.get(&U::try_from(i).ok().unwrap());
             match count {
-                Some(x) => colors.push((i as u8, (*x as f32) / (len as f32))),
+                Some(x) => colors.push((
+                    U::try_from(i).ok().unwrap(),
+                    T::from((*x as f32) / (len as f32)).unwrap(),
+                )),
                 None => continue,
             }
         }
 
         // Sort by increasing luminosity
-        let mut lab: Vec<(u8, Luma)> = centroids
+        let mut lab: Vec<(U, Luma)> = centroids
             .iter()
             .enumerate()
-            .map(|(i, x)| (i as u8, x.into_format().into()))
+            .map(|(i, x)| (U::try_from(i).ok().unwrap(), x.into_format().into()))
             .collect();
         lab.sort_unstable_by(|a, b| (a.1.luma).partial_cmp(&b.1.luma).unwrap());
 
@@ -136,12 +195,14 @@ impl Sort for Srgb {
         lab.iter()
             .filter_map(|x| map.get_key_value(&x.0))
             .filter(|x| *x.1 > 0)
-            .filter_map(|x| match colors.get(*x.0 as usize) {
-                Some(x) => match colors.iter().position(|a| a.0 == x.0 as u8) {
+            .filter_map(|x| match colors.get(usize::try_from(*x.0).unwrap()) {
+                Some(x) => match colors.iter().position(|a| a.0 == x.0) {
                     Some(y) => Some(CentroidData {
-                        centroid: *(centroids.get(colors.get(y).unwrap().0 as usize).unwrap()),
+                        centroid: *(centroids
+                            .get(usize::try_from(colors.get(y).unwrap().0).unwrap())
+                            .unwrap()),
                         percentage: colors.get(y).unwrap().1,
-                        index: y as u8,
+                        index: U::try_from(y).ok().unwrap(),
                     }),
                     None => None,
                 },

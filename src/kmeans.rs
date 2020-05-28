@@ -1,52 +1,73 @@
+use core::convert::TryFrom;
+use core::fmt::Display;
+
 #[cfg(feature = "palette_color")]
 use palette::white_point::WhitePoint;
 #[cfg(feature = "palette_color")]
 use palette::{Component, Lab, Laba, Srgb, Srgba};
 
+use num_traits::Float;
 use rand::{Rng, SeedableRng};
 
 /// A trait for enabling k-means calculation of a data type.
 pub trait Calculate: Sized {
     /// Find a points's nearest centroid, index the point with that centroid.
-    fn get_closest_centroid(buffer: &[Self], centroids: &[Self], indices: &mut Vec<u8>);
+    fn get_closest_centroid<T>(buffer: &[Self], centroids: &[Self], indices: &mut Vec<T>)
+    where
+        T: TryFrom<usize>;
 
     /// Find the new centroid locations based on the average of the points that
     /// correspond to the centroid. If no points correspond, the centroid is
     /// re-initialized with a random point.
-    fn recalculate_centroids(
+    fn recalculate_centroids<T: TryFrom<usize>>(
         rng: &mut impl Rng,
         buf: &[Self],
         centroids: &mut [Self],
-        indices: &[u8],
-    );
+        indices: &[T],
+    ) where
+        T: TryFrom<usize> + PartialEq;
 
     /// Calculate the distance metric for convergence comparison.
-    fn check_loop(centroids: &[Self], old_centroids: &[Self]) -> f32;
+    fn check_loop<T>(centroids: &[Self], old_centroids: &[Self]) -> T
+    where
+        T: Float;
 
     /// Generate random point.
     fn create_random(rng: &mut impl Rng) -> Self;
 
     /// Calculate the geometric distance between two points, the square root is
     /// omitted.
-    fn difference(c1: &Self, c2: &Self) -> f32;
+    fn difference<T>(c1: &Self, c2: &Self) -> T
+    where
+        T: Float;
 }
 
 /// Result of k-means calculation with convergence score, centroids, and indexed
 /// buffer.
 #[derive(Clone, Debug, Default)]
-pub struct Kmeans<C: Calculate> {
+pub struct Kmeans<C, T = f32, U = u8>
+where
+    C: Calculate,
+    T: Float,
+    U: TryFrom<usize>,
+{
     /// Sum of squares distance metric for centroids compared to old centroids.
-    pub score: f32,
+    pub score: T,
     /// Points determined to be centroids of input buffer.
     pub centroids: Vec<C>,
     /// Buffer of points indexed to centroids.
-    pub indices: Vec<u8>,
+    pub indices: Vec<U>,
 }
 
-impl<C: Calculate> Kmeans<C> {
+impl<C, T, U> Kmeans<C, T, U>
+where
+    C: Calculate,
+    T: Float,
+    U: TryFrom<usize>,
+{
     pub fn new() -> Self {
         Kmeans {
-            score: core::f32::MAX,
+            score: T::max_value(),
             centroids: Vec::new(),
             indices: Vec::new(),
         }
@@ -65,14 +86,19 @@ impl<C: Calculate> Kmeans<C> {
 /// - `verbose` - flag for printing convergence information to console.
 /// - `buf` - array of points.
 /// - `seed` - seed for the random number generator.
-pub fn get_kmeans<C: Calculate + Clone>(
+pub fn get_kmeans<C, T, U>(
     k: usize,
     max_iter: usize,
-    converge: f32,
+    converge: T,
     verbose: bool,
     buf: &[C],
     seed: u64,
-) -> Kmeans<C> {
+) -> Kmeans<C, T, U>
+where
+    C: Calculate + Clone,
+    T: Float + Display,
+    U: TryFrom<usize> + PartialEq,
+{
     // Initialize the random centroids
     let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(seed);
     let mut centroids: Vec<C> = Vec::with_capacity(k);
@@ -82,7 +108,7 @@ pub fn get_kmeans<C: Calculate + Clone>(
     let mut iterations = 0;
     let mut score;
     let mut old_centroids = centroids.clone();
-    let mut indices: Vec<u8> = Vec::with_capacity(buf.len());
+    let mut indices: Vec<U> = Vec::with_capacity(buf.len());
 
     // Main loop: find nearest centroids and recalculate means until convergence
     loop {
@@ -118,7 +144,10 @@ pub fn get_kmeans<C: Calculate + Clone>(
 
 #[cfg(feature = "palette_color")]
 impl<Wp: WhitePoint> Calculate for Lab<Wp> {
-    fn get_closest_centroid(lab: &[Lab<Wp>], centroids: &[Lab<Wp>], indices: &mut Vec<u8>) {
+    fn get_closest_centroid<T>(lab: &[Lab<Wp>], centroids: &[Lab<Wp>], indices: &mut Vec<T>)
+    where
+        T: TryFrom<usize>,
+    {
         for color in lab.iter() {
             let mut index = 0;
             let mut diff;
@@ -130,23 +159,25 @@ impl<Wp: WhitePoint> Calculate for Lab<Wp> {
                     index = idx;
                 }
             }
-            indices.push(index as u8);
+            indices.push(T::try_from(index).ok().unwrap());
         }
     }
 
-    fn recalculate_centroids(
+    fn recalculate_centroids<T>(
         mut rng: &mut impl Rng,
         buf: &[Lab<Wp>],
         centroids: &mut [Lab<Wp>],
-        indices: &[u8],
-    ) {
+        indices: &[T],
+    ) where
+        T: TryFrom<usize> + PartialEq,
+    {
         for (idx, cent) in centroids.iter_mut().enumerate() {
             let mut l = 0.0;
             let mut a = 0.0;
             let mut b = 0.0;
             let mut counter: u64 = 0;
             for (jdx, color) in indices.iter().zip(buf) {
-                if *jdx == idx as u8 {
+                if *jdx == T::try_from(idx).ok().unwrap() {
                     l += color.l;
                     a += color.a;
                     b += color.b;
@@ -166,7 +197,10 @@ impl<Wp: WhitePoint> Calculate for Lab<Wp> {
         }
     }
 
-    fn check_loop(centroids: &[Lab<Wp>], old_centroids: &[Lab<Wp>]) -> f32 {
+    fn check_loop<T>(centroids: &[Lab<Wp>], old_centroids: &[Lab<Wp>]) -> T
+    where
+        T: Float,
+    {
         let mut l = 0.0;
         let mut a = 0.0;
         let mut b = 0.0;
@@ -176,7 +210,7 @@ impl<Wp: WhitePoint> Calculate for Lab<Wp> {
             b += (c.0).b - (c.1).b;
         }
 
-        l * l + a * a + b * b
+        T::from(l * l + a * a + b * b).unwrap()
     }
 
     #[inline]
@@ -189,16 +223,25 @@ impl<Wp: WhitePoint> Calculate for Lab<Wp> {
     }
 
     #[inline]
-    fn difference(c1: &Lab<Wp>, c2: &Lab<Wp>) -> f32 {
-        (c1.l - c2.l) * (c1.l - c2.l)
-            + (c1.a - c2.a) * (c1.a - c2.a)
-            + (c1.b - c2.b) * (c1.b - c2.b)
+    fn difference<T>(c1: &Lab<Wp>, c2: &Lab<Wp>) -> T
+    where
+        T: Float,
+    {
+        T::from(
+            (c1.l - c2.l) * (c1.l - c2.l)
+                + (c1.a - c2.a) * (c1.a - c2.a)
+                + (c1.b - c2.b) * (c1.b - c2.b),
+        )
+        .unwrap()
     }
 }
 
 #[cfg(feature = "palette_color")]
 impl Calculate for Srgb {
-    fn get_closest_centroid(rgb: &[Srgb], centroids: &[Srgb], indices: &mut Vec<u8>) {
+    fn get_closest_centroid<T>(rgb: &[Srgb], centroids: &[Srgb], indices: &mut Vec<T>)
+    where
+        T: TryFrom<usize>,
+    {
         for color in rgb.iter() {
             let mut index = 0;
             let mut diff;
@@ -210,23 +253,25 @@ impl Calculate for Srgb {
                     index = idx;
                 }
             }
-            indices.push(index as u8);
+            indices.push(T::try_from(index).ok().unwrap());
         }
     }
 
-    fn recalculate_centroids(
+    fn recalculate_centroids<T>(
         mut rng: &mut impl Rng,
         buf: &[Srgb],
         centroids: &mut [Srgb],
-        indices: &[u8],
-    ) {
+        indices: &[T],
+    ) where
+        T: TryFrom<usize> + PartialEq,
+    {
         for (idx, cent) in centroids.iter_mut().enumerate() {
             let mut red = 0.0;
             let mut green = 0.0;
             let mut blue = 0.0;
             let mut counter: u64 = 0;
             for (jdx, color) in indices.iter().zip(buf) {
-                if *jdx == idx as u8 {
+                if *jdx == T::try_from(idx).ok().unwrap() {
                     red += color.red;
                     green += color.green;
                     blue += color.blue;
@@ -246,7 +291,10 @@ impl Calculate for Srgb {
         }
     }
 
-    fn check_loop(centroids: &[Srgb], old_centroids: &[Srgb]) -> f32 {
+    fn check_loop<T>(centroids: &[Srgb], old_centroids: &[Srgb]) -> T
+    where
+        T: Float,
+    {
         let mut red = 0.0;
         let mut green = 0.0;
         let mut blue = 0.0;
@@ -256,7 +304,7 @@ impl Calculate for Srgb {
             blue += (c.0).blue - (c.1).blue;
         }
 
-        red * red + green * green + blue * blue
+        T::from(red * red + green * green + blue * blue).unwrap()
     }
 
     #[inline]
@@ -265,10 +313,16 @@ impl Calculate for Srgb {
     }
 
     #[inline]
-    fn difference(c1: &Srgb, c2: &Srgb) -> f32 {
-        (c1.red - c2.red) * (c1.red - c2.red)
-            + (c1.green - c2.green) * (c1.green - c2.green)
-            + (c1.blue - c2.blue) * (c1.blue - c2.blue)
+    fn difference<T>(c1: &Srgb, c2: &Srgb) -> T
+    where
+        T: Float,
+    {
+        T::from(
+            (c1.red - c2.red) * (c1.red - c2.red)
+                + (c1.green - c2.green) * (c1.green - c2.green)
+                + (c1.blue - c2.blue) * (c1.blue - c2.blue),
+        )
+        .unwrap()
     }
 }
 
@@ -276,7 +330,9 @@ impl Calculate for Srgb {
 #[cfg(feature = "palette_color")]
 pub trait MapColor: Sized {
     /// Map pixel indices to each centroid for output buffer.
-    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self>;
+    fn map_indices_to_centroids<T>(centroids: &[Self], indices: &[T]) -> Vec<Self>
+    where
+        T: Copy + Into<usize>;
 }
 
 #[cfg(feature = "palette_color")]
@@ -285,12 +341,15 @@ where
     Wp: WhitePoint,
 {
     #[inline]
-    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
+    fn map_indices_to_centroids<T>(centroids: &[Self], indices: &[T]) -> Vec<Self>
+    where
+        T: Copy + Into<usize>,
+    {
         indices
             .iter()
             .map(|x| {
                 *centroids
-                    .get(*x as usize)
+                    .get(usize::try_from(*x).unwrap())
                     .unwrap_or_else(|| centroids.last().unwrap())
             })
             .collect()
@@ -303,12 +362,15 @@ where
     Wp: WhitePoint,
 {
     #[inline]
-    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
+    fn map_indices_to_centroids<T>(centroids: &[Self], indices: &[T]) -> Vec<Self>
+    where
+        T: Copy + Into<usize>,
+    {
         indices
             .iter()
             .map(|x| {
                 *centroids
-                    .get(*x as usize)
+                    .get(usize::try_from(*x).unwrap())
                     .unwrap_or_else(|| centroids.last().unwrap())
             })
             .collect()
@@ -321,12 +383,15 @@ where
     C: Component,
 {
     #[inline]
-    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
+    fn map_indices_to_centroids<T>(centroids: &[Self], indices: &[T]) -> Vec<Self>
+    where
+        T: Copy + Into<usize>,
+    {
         indices
             .iter()
             .map(|x| {
                 *centroids
-                    .get(*x as usize)
+                    .get(usize::try_from(*x).unwrap())
                     .unwrap_or_else(|| centroids.last().unwrap())
             })
             .collect()
@@ -339,12 +404,15 @@ where
     C: Component,
 {
     #[inline]
-    fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
+    fn map_indices_to_centroids<T>(centroids: &[Self], indices: &[T]) -> Vec<Self>
+    where
+        T: Copy + Into<usize>,
+    {
         indices
             .iter()
             .map(|x| {
                 *centroids
-                    .get(*x as usize)
+                    .get(usize::try_from(*x).unwrap())
                     .unwrap_or_else(|| centroids.last().unwrap())
             })
             .collect()
