@@ -1,12 +1,10 @@
 use core::convert::TryFrom;
-use core::fmt::Display;
 
 #[cfg(feature = "palette_color")]
 use palette::white_point::WhitePoint;
 #[cfg(feature = "palette_color")]
 use palette::{Component, Lab, Laba, Srgb, Srgba};
 
-use num_traits::Float;
 use rand::{Rng, SeedableRng};
 
 /// A trait for enabling k-means calculation of a data type.
@@ -28,46 +26,40 @@ pub trait Calculate: Sized {
         T: TryFrom<usize> + PartialEq;
 
     /// Calculate the distance metric for convergence comparison.
-    fn check_loop<T>(centroids: &[Self], old_centroids: &[Self]) -> T
-    where
-        T: Float;
+    fn check_loop(centroids: &[Self], old_centroids: &[Self]) -> f32;
 
     /// Generate random point.
     fn create_random(rng: &mut impl Rng) -> Self;
 
     /// Calculate the geometric distance between two points, the square root is
     /// omitted.
-    fn difference<T>(c1: &Self, c2: &Self) -> T
-    where
-        T: Float;
+    fn difference(c1: &Self, c2: &Self) -> f32;
 }
 
 /// Result of k-means calculation with convergence score, centroids, and indexed
 /// buffer.
 #[derive(Clone, Debug, Default)]
-pub struct Kmeans<C, T = f32, U = u8>
+pub struct Kmeans<C, U = u8>
 where
     C: Calculate,
-    T: Float,
     U: TryFrom<usize>,
 {
     /// Sum of squares distance metric for centroids compared to old centroids.
-    pub score: T,
+    pub score: f32,
     /// Points determined to be centroids of input buffer.
     pub centroids: Vec<C>,
     /// Buffer of points indexed to centroids.
     pub indices: Vec<U>,
 }
 
-impl<C, T, U> Kmeans<C, T, U>
+impl<C, U> Kmeans<C, U>
 where
     C: Calculate,
-    T: Float,
     U: TryFrom<usize>,
 {
     pub fn new() -> Self {
         Kmeans {
-            score: T::max_value(),
+            score: core::f32::MAX,
             centroids: Vec::new(),
             indices: Vec::new(),
         }
@@ -86,17 +78,16 @@ where
 /// - `verbose` - flag for printing convergence information to console.
 /// - `buf` - array of points.
 /// - `seed` - seed for the random number generator.
-pub fn get_kmeans<C, T, U>(
+pub fn get_kmeans<C, U>(
     k: usize,
     max_iter: usize,
-    converge: T,
+    converge: f32,
     verbose: bool,
     buf: &[C],
     seed: u64,
-) -> Kmeans<C, T, U>
+) -> Kmeans<C, U>
 where
     C: Calculate + Clone,
-    T: Float + Display,
     U: TryFrom<usize> + PartialEq,
 {
     // Initialize the random centroids
@@ -197,10 +188,7 @@ impl<Wp: WhitePoint> Calculate for Lab<Wp> {
         }
     }
 
-    fn check_loop<T>(centroids: &[Lab<Wp>], old_centroids: &[Lab<Wp>]) -> T
-    where
-        T: Float,
-    {
+    fn check_loop(centroids: &[Lab<Wp>], old_centroids: &[Lab<Wp>]) -> f32 {
         let mut l = 0.0;
         let mut a = 0.0;
         let mut b = 0.0;
@@ -210,7 +198,7 @@ impl<Wp: WhitePoint> Calculate for Lab<Wp> {
             b += (c.0).b - (c.1).b;
         }
 
-        T::from(l * l + a * a + b * b).unwrap()
+        l * l + a * a + b * b
     }
 
     #[inline]
@@ -223,16 +211,10 @@ impl<Wp: WhitePoint> Calculate for Lab<Wp> {
     }
 
     #[inline]
-    fn difference<T>(c1: &Lab<Wp>, c2: &Lab<Wp>) -> T
-    where
-        T: Float,
-    {
-        T::from(
-            (c1.l - c2.l) * (c1.l - c2.l)
-                + (c1.a - c2.a) * (c1.a - c2.a)
-                + (c1.b - c2.b) * (c1.b - c2.b),
-        )
-        .unwrap()
+    fn difference(c1: &Lab<Wp>, c2: &Lab<Wp>) -> f32 {
+        (c1.l - c2.l) * (c1.l - c2.l)
+            + (c1.a - c2.a) * (c1.a - c2.a)
+            + (c1.b - c2.b) * (c1.b - c2.b)
     }
 }
 
@@ -291,10 +273,7 @@ impl Calculate for Srgb {
         }
     }
 
-    fn check_loop<T>(centroids: &[Srgb], old_centroids: &[Srgb]) -> T
-    where
-        T: Float,
-    {
+    fn check_loop(centroids: &[Srgb], old_centroids: &[Srgb]) -> f32 {
         let mut red = 0.0;
         let mut green = 0.0;
         let mut blue = 0.0;
@@ -304,7 +283,7 @@ impl Calculate for Srgb {
             blue += (c.0).blue - (c.1).blue;
         }
 
-        T::from(red * red + green * green + blue * blue).unwrap()
+        red * red + green * green + blue * blue
     }
 
     #[inline]
@@ -313,16 +292,10 @@ impl Calculate for Srgb {
     }
 
     #[inline]
-    fn difference<T>(c1: &Srgb, c2: &Srgb) -> T
-    where
-        T: Float,
-    {
-        T::from(
-            (c1.red - c2.red) * (c1.red - c2.red)
-                + (c1.green - c2.green) * (c1.green - c2.green)
-                + (c1.blue - c2.blue) * (c1.blue - c2.blue),
-        )
-        .unwrap()
+    fn difference(c1: &Srgb, c2: &Srgb) -> f32 {
+        (c1.red - c2.red) * (c1.red - c2.red)
+            + (c1.green - c2.green) * (c1.green - c2.green)
+            + (c1.blue - c2.blue) * (c1.blue - c2.blue)
     }
 }
 

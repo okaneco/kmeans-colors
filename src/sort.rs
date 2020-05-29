@@ -11,23 +11,20 @@ use palette::white_point::WhitePoint;
 #[cfg(feature = "palette_color")]
 use palette::{Lab, Srgb};
 
-use num_traits::Float;
-
 use crate::Calculate;
 
 /// A struct containing a centroid, its percentage within a buffer, and the
 /// centroid's index.
 #[derive(Clone, Debug, Default)]
-pub struct CentroidData<C, T = f32, U = u8>
+pub struct CentroidData<C, U = u8>
 where
     C: Calculate,
-    T: Float,
     U: TryFrom<usize>,
 {
     /// A k-means centroid.
     pub centroid: C,
     /// The percentage a centroid appears in a buffer.
-    pub percentage: T,
+    pub percentage: f32,
     /// The centroid's index.
     pub index: U,
 }
@@ -36,31 +33,28 @@ where
 #[cfg(feature = "palette_color")]
 pub trait Sort: Sized + Calculate {
     /// Returns the centroid with the largest percentage.
-    fn get_dominant_color<C, T, U>(data: &[CentroidData<C, T, U>]) -> Option<C>
+    fn get_dominant_color<C, U>(data: &[CentroidData<C, U>]) -> Option<C>
     where
         C: Copy + Calculate,
-        T: Float,
         U: TryFrom<usize>;
 
     /// Sorts centroids by luminosity and calculates the percentage of each
     /// color in the buffer. Returns a `CentroidResult` sorted from darkest to
     /// lightest.
-    fn sort_indexed_colors<C, T, U>(
+    fn sort_indexed_colors<C, U>(
         centroids: &Vec<Self>,
         indices: &[U],
-    ) -> Vec<CentroidData<Self, T, U>>
+    ) -> Vec<CentroidData<Self, U>>
     where
         C: Calculate,
-        T: Float,
         U: Copy + Eq + Hash + Into<usize> + TryFrom<usize>;
 }
 
 #[cfg(feature = "palette_color")]
 impl<Wp: WhitePoint> Sort for Lab<Wp> {
-    fn get_dominant_color<C, T, U>(data: &[CentroidData<C, T, U>]) -> Option<C>
+    fn get_dominant_color<C, U>(data: &[CentroidData<C, U>]) -> Option<C>
     where
         C: Copy + Calculate,
-        T: Float,
         U: TryFrom<usize>,
     {
         let res = data
@@ -71,13 +65,9 @@ impl<Wp: WhitePoint> Sort for Lab<Wp> {
         Some(res.centroid)
     }
 
-    fn sort_indexed_colors<C, T, U>(
-        centroids: &Vec<Self>,
-        indices: &[U],
-    ) -> Vec<CentroidData<Self, T, U>>
+    fn sort_indexed_colors<C, U>(centroids: &Vec<Self>, indices: &[U]) -> Vec<CentroidData<Self, U>>
     where
         C: Calculate,
-        T: Float,
         U: Copy + Eq + Hash + Into<usize> + TryFrom<usize>,
     {
         // Count occurences of each color - "histogram"
@@ -91,14 +81,11 @@ impl<Wp: WhitePoint> Sort for Lab<Wp> {
         }
 
         let len = indices.len();
-        let mut colors: Vec<(U, T)> = Vec::with_capacity(centroids.len());
+        let mut colors: Vec<(U, f32)> = Vec::with_capacity(centroids.len());
         for (i, _) in centroids.iter().enumerate() {
             let count = map.get(&U::try_from(i).ok().unwrap());
             match count {
-                Some(x) => colors.push((
-                    U::try_from(i).ok().unwrap(),
-                    T::from((*x as f32) / (len as f32)).unwrap(),
-                )),
+                Some(x) => colors.push((U::try_from(i).ok().unwrap(), (*x as f32) / (len as f32))),
                 None => continue,
             }
         }
@@ -137,10 +124,9 @@ impl<Wp: WhitePoint> Sort for Lab<Wp> {
 
 #[cfg(feature = "palette_color")]
 impl Sort for Srgb {
-    fn get_dominant_color<C, T, U>(data: &[CentroidData<C, T, U>]) -> Option<C>
+    fn get_dominant_color<C, U>(data: &[CentroidData<C, U>]) -> Option<C>
     where
         C: Copy + Calculate,
-        T: Float,
         U: TryFrom<usize>,
     {
         let res = data
@@ -151,13 +137,9 @@ impl Sort for Srgb {
         Some(res.centroid)
     }
 
-    fn sort_indexed_colors<C, T, U>(
-        centroids: &Vec<Self>,
-        indices: &[U],
-    ) -> Vec<CentroidData<Self, T, U>>
+    fn sort_indexed_colors<C, U>(centroids: &Vec<Self>, indices: &[U]) -> Vec<CentroidData<Self, U>>
     where
         C: Calculate,
-        T: Float,
         U: Copy + Eq + Hash + Into<usize> + TryFrom<usize>,
     {
         // Count occurences of each color - "histogram"
@@ -171,14 +153,11 @@ impl Sort for Srgb {
         }
 
         let len = indices.len();
-        let mut colors: Vec<(U, T)> = Vec::with_capacity(centroids.len());
+        let mut colors: Vec<(U, f32)> = Vec::with_capacity(centroids.len());
         for (i, _) in centroids.iter().enumerate() {
             let count = map.get(&U::try_from(i).ok().unwrap());
             match count {
-                Some(x) => colors.push((
-                    U::try_from(i).ok().unwrap(),
-                    T::from((*x as f32) / (len as f32)).unwrap(),
-                )),
+                Some(x) => colors.push((U::try_from(i).ok().unwrap(), (*x as f32) / (len as f32))),
                 None => continue,
             }
         }

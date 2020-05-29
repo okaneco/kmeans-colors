@@ -69,7 +69,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             // Print and/or sort results, output to palette
             if opt.print || opt.percentage || opt.palette {
                 let mut res =
-                    Lab::sort_indexed_colors::<Lab, f32, _>(&result.centroids, &result.indices);
+                    Lab::sort_indexed_colors::<Lab, _>(&result.centroids, &result.indices);
                 if opt.sort {
                     res.sort_unstable_by(|a, b| (b.percentage).partial_cmp(&a.percentage).unwrap());
                 }
@@ -188,7 +188,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             // Print and/or sort results, output to palette
             if opt.print || opt.percentage || opt.palette {
                 let mut res =
-                    Srgb::sort_indexed_colors::<Srgb, f32, _>(&result.centroids, &result.indices);
+                    Srgb::sort_indexed_colors::<Srgb, _>(&result.centroids, &result.indices);
                 if opt.sort {
                     res.sort_unstable_by(|a, b| (b.percentage).partial_cmp(&a.percentage).unwrap());
                 }
@@ -340,7 +340,7 @@ pub fn find_colors(
                 Lab::get_closest_centroid(&lab, &centroids, &mut indices);
 
                 if percentage {
-                    let res = Lab::sort_indexed_colors::<Lab, _, _>(&centroids, &indices);
+                    let res = Lab::sort_indexed_colors::<Lab, _>(&centroids, &indices);
                     print_colors(percentage, &res)?;
                 }
 
@@ -394,7 +394,7 @@ pub fn find_colors(
                 // We replace the colors in `sorted` with our centroids for printing
                 // purposes.
                 let mut res =
-                    Lab::sort_indexed_colors::<Lab, _, _>(&result.centroids, &result.indices);
+                    Lab::sort_indexed_colors::<Lab, _>(&result.centroids, &result.indices);
                 res.iter_mut()
                     .zip(&centroids)
                     .for_each(|(s, c)| s.centroid = *c);
@@ -455,7 +455,7 @@ pub fn find_colors(
                 Srgb::get_closest_centroid(&rgb, &centroids, &mut indices);
 
                 if percentage {
-                    let res = Srgb::sort_indexed_colors::<Srgb, _, _>(&centroids, &indices);
+                    let res = Srgb::sort_indexed_colors::<Srgb, _>(&centroids, &indices);
                     print_colors(percentage, &res)?;
                 }
 
@@ -503,7 +503,7 @@ pub fn find_colors(
                 // We replace the colors in `sorted` with our centroids for printing
                 // purposes.
                 let mut res =
-                    Srgb::sort_indexed_colors::<Srgb, _, _>(&result.centroids, &result.indices);
+                    Srgb::sort_indexed_colors::<Srgb, _>(&result.centroids, &result.indices);
                 res.iter_mut()
                     .zip(&centroids)
                     .for_each(|(s, c)| s.centroid = *c);

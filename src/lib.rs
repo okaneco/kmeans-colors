@@ -68,7 +68,7 @@
 //!     .collect();
 //!
 //! // Iterate over the runs, keep the best results
-//! let mut result: Kmeans<Lab, f32, u8> = Kmeans::new();
+//! let mut result: Kmeans<Lab, u8> = Kmeans::new();
 //! (0..runs).for_each(|i| {
 //!     let run_result = get_kmeans(
 //!         k,
@@ -145,7 +145,7 @@
 //! #     }
 //! # });
 //! // Using the results from the previous example, process the centroid data
-//! let mut res = Lab::sort_indexed_colors::<Lab, f32, u8>(&result.centroids, &result.indices);
+//! let mut res = Lab::sort_indexed_colors::<Lab, u8>(&result.centroids, &result.indices);
 //!
 //! // We can find the dominant color directly
 //! let dominant_color = Lab::<D65>::get_dominant_color(&res);
