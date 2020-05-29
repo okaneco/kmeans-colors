@@ -10,9 +10,7 @@ readme = "README.md"
 keywords = ["kmeans", "clustering", "lab", "color", "rgb"]
 categories = ["graphics", "multimedia::images", "mathematics"]
 license = "MIT OR Apache-2.0"
-description = """
-Simple k-means clustering to find dominant colors in images.
-
+description = """Simple k-means clustering to find dominant colors in images.\n
 Backed by a generic k-means implementation offered as a standalone library."""
 
 [features]
@@ -59,3 +57,8 @@ optional = true
 
 [profile.release]
 lto = "thin"
+
+[package.metadata.docs.rs]
+no-default-features = true
+features = ["palette_color"]
+targets = []

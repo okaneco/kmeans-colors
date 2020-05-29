@@ -117,8 +117,8 @@ pub fn get_kmeans<C: Calculate + Clone>(
 }
 
 #[cfg(feature = "palette_color")]
-impl Calculate for Lab {
-    fn get_closest_centroid(lab: &[Lab], centroids: &[Lab], indices: &mut Vec<u8>) {
+impl<Wp: WhitePoint> Calculate for Lab<Wp> {
+    fn get_closest_centroid(lab: &[Lab<Wp>], centroids: &[Lab<Wp>], indices: &mut Vec<u8>) {
         for color in lab.iter() {
             let mut index = 0;
             let mut diff;
@@ -136,8 +136,8 @@ impl Calculate for Lab {
 
     fn recalculate_centroids(
         mut rng: &mut impl Rng,
-        buf: &[Lab],
-        centroids: &mut [Lab],
+        buf: &[Lab<Wp>],
+        centroids: &mut [Lab<Wp>],
         indices: &[u8],
     ) {
         for (idx, cent) in centroids.iter_mut().enumerate() {
@@ -166,7 +166,7 @@ impl Calculate for Lab {
         }
     }
 
-    fn check_loop(centroids: &[Lab], old_centroids: &[Lab]) -> f32 {
+    fn check_loop(centroids: &[Lab<Wp>], old_centroids: &[Lab<Wp>]) -> f32 {
         let mut l = 0.0;
         let mut a = 0.0;
         let mut b = 0.0;
@@ -180,8 +180,8 @@ impl Calculate for Lab {
     }
 
     #[inline]
-    fn create_random(rng: &mut impl Rng) -> Lab {
-        Lab::new(
+    fn create_random(rng: &mut impl Rng) -> Lab<Wp> {
+        Lab::with_wp(
             rng.gen_range(0.0, 100.0),
             rng.gen_range(-128.0, 127.0),
             rng.gen_range(-128.0, 127.0),
@@ -189,7 +189,7 @@ impl Calculate for Lab {
     }
 
     #[inline]
-    fn difference(c1: &Lab, c2: &Lab) -> f32 {
+    fn difference(c1: &Lab<Wp>, c2: &Lab<Wp>) -> f32 {
         (c1.l - c2.l) * (c1.l - c2.l)
             + (c1.a - c2.a) * (c1.a - c2.a)
             + (c1.b - c2.b) * (c1.b - c2.b)
