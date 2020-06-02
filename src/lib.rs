@@ -2,7 +2,7 @@
 //!
 //! # Overview
 //!
-//! This crate provides traits for calculating and implementing a k-means
+//! This crate provides traits for implementing and calculating a k-means
 //! clustering algorithm. The original implementation of this library was
 //! created for finding k-means colors in image buffers. Applications of crate
 //! functionality can be seen on the [README page][readme].
@@ -15,15 +15,21 @@
 //! `Srgb` color types behind the `palette_color` feature.
 //!
 //! The binary located in `src/bin/kmeans_colors` shows examples of crate
-//! functionality.
+//! usage.
 //!
 //! [palette]: https://github.com/Ogeon/palette/
 //!
 //! ## The `Calculate` trait
 //! k-means calculations can be provided for other data types by implementing
-//! the [`Calculate`](trait.Calculate.html) trait. See the `Lab` and `Srgb`
-//! implementations in [`kmeans.rs`](../src/kmeans_colors/kmeans.rs.html#119)
-//! for examples.
+//! the [`Calculate`](trait.Calculate.html) trait. Further,
+//! [`Hamerly`](trait.Hamerly.html) can be implemented to enable use of the
+//! Hamerly optimization and [`get_kmeans_hamerly`][hamerly]. See the `Lab` and
+//! `Srgb` implementations in [`kmeans.rs`][kmeans] for examples. These
+//! implementations can be used as groundwork for implementing with other types,
+//! and should not require much modification beyond the distance calculations.
+//!
+//! [hamerly]: fn.get_kmeans_hamerly.html
+//! [kmeans]: ../src/kmeans_colors/kmeans.rs.html#119
 //!
 //! ## Calculating k-means with `palette_color`
 //!
@@ -165,5 +171,7 @@ mod sort;
 #[cfg(feature = "palette_color")]
 pub use kmeans::MapColor;
 
-pub use kmeans::{get_kmeans, Calculate, Kmeans};
+pub use kmeans::{
+    get_kmeans, get_kmeans_hamerly, Calculate, Hamerly, HamerlyCentroids, HamerlyPoint, Kmeans,
+};
 pub use sort::{CentroidData, Sort};

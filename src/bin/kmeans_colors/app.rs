@@ -6,7 +6,7 @@ use palette::{Lab, Pixel, Srgb, Srgba};
 use crate::args::Opt;
 use crate::filename::{create_filename, create_filename_palette};
 use crate::utils::{parse_color, print_colors, save_image, save_image_alpha, save_palette};
-use kmeans_colors::{get_kmeans, Calculate, Kmeans, MapColor, Sort};
+use kmeans_colors::{get_kmeans, get_kmeans_hamerly, Calculate, Kmeans, MapColor, Sort};
 
 pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
     if opt.input.len() == 0 {
@@ -52,19 +52,35 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Iterate over amount of runs keeping best results
             let mut result = Kmeans::new();
-            (0..opt.runs).for_each(|i| {
-                let run_result = get_kmeans(
-                    opt.k as usize,
-                    opt.max_iter,
-                    converge,
-                    opt.verbose,
-                    &lab,
-                    seed + i as u64,
-                );
-                if run_result.score < result.score {
-                    result = run_result;
-                }
-            });
+            if opt.k > 5 {
+                (0..opt.runs).for_each(|i| {
+                    let run_result = get_kmeans_hamerly(
+                        opt.k as usize,
+                        opt.max_iter,
+                        converge,
+                        opt.verbose,
+                        &lab,
+                        seed + i as u64,
+                    );
+                    if run_result.score < result.score {
+                        result = run_result;
+                    }
+                });
+            } else {
+                (0..opt.runs).for_each(|i| {
+                    let run_result = get_kmeans(
+                        opt.k as usize,
+                        opt.max_iter,
+                        converge,
+                        opt.verbose,
+                        &lab,
+                        seed + i as u64,
+                    );
+                    if run_result.score < result.score {
+                        result = run_result;
+                    }
+                });
+            }
 
             // Print and/or sort results, output to palette
             if opt.print || opt.percentage || opt.palette {
@@ -167,22 +183,37 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                     .collect();
             }
 
-            let mut result = Kmeans::new();
-
             // Iterate over amount of runs keeping best results
-            (0..opt.runs).for_each(|i| {
-                let run_result = get_kmeans(
-                    opt.k as usize,
-                    opt.max_iter,
-                    converge,
-                    opt.verbose,
-                    &rgb,
-                    seed + i as u64,
-                );
-                if run_result.score < result.score {
-                    result = run_result;
-                }
-            });
+            let mut result = Kmeans::new();
+            if opt.k > 5 {
+                (0..opt.runs).for_each(|i| {
+                    let run_result = get_kmeans_hamerly(
+                        opt.k as usize,
+                        opt.max_iter,
+                        converge,
+                        opt.verbose,
+                        &rgb,
+                        seed + i as u64,
+                    );
+                    if run_result.score < result.score {
+                        result = run_result;
+                    }
+                });
+            } else {
+                (0..opt.runs).for_each(|i| {
+                    let run_result = get_kmeans(
+                        opt.k as usize,
+                        opt.max_iter,
+                        converge,
+                        opt.verbose,
+                        &rgb,
+                        seed + i as u64,
+                    );
+                    if run_result.score < result.score {
+                        result = run_result;
+                    }
+                });
+            }
 
             // Print and/or sort results, output to palette
             if opt.print || opt.percentage || opt.palette {
@@ -371,20 +402,30 @@ pub fn find_colors(
                     .collect();
 
                 let mut result = Kmeans::new();
-                let k = centroids.len() as u8;
-                (0..runs).for_each(|i| {
-                    let run_result = get_kmeans(
-                        k as usize,
-                        max_iter,
-                        converge,
-                        verbose,
-                        &lab,
-                        seed + i as u64,
-                    );
-                    if run_result.score < result.score {
-                        result = run_result;
-                    }
-                });
+                let k = centroids.len();
+                if k > 5 {
+                    (0..runs).for_each(|i| {
+                        let run_result = get_kmeans_hamerly(
+                            k,
+                            max_iter,
+                            converge,
+                            verbose,
+                            &lab,
+                            seed + i as u64,
+                        );
+                        if run_result.score < result.score {
+                            result = run_result;
+                        }
+                    });
+                } else {
+                    (0..runs).for_each(|i| {
+                        let run_result =
+                            get_kmeans(k, max_iter, converge, verbose, &lab, seed + i as u64);
+                        if run_result.score < result.score {
+                            result = run_result;
+                        }
+                    });
+                }
 
                 // We want to sort the user centroids based on the kmeans colors
                 // sorted by luminosity using the u8 returned in `sorted`. This
@@ -486,13 +527,29 @@ pub fn find_colors(
 
                 let mut result = Kmeans::new();
                 let k = centroids.len();
-                (0..runs).for_each(|i| {
-                    let run_result =
-                        get_kmeans(k, max_iter, converge, verbose, &rgb, seed + i as u64);
-                    if run_result.score < result.score {
-                        result = run_result;
-                    }
-                });
+                if k > 5 {
+                    (0..runs).for_each(|i| {
+                        let run_result = get_kmeans_hamerly(
+                            k,
+                            max_iter,
+                            converge,
+                            verbose,
+                            &rgb,
+                            seed + i as u64,
+                        );
+                        if run_result.score < result.score {
+                            result = run_result;
+                        }
+                    });
+                } else {
+                    (0..runs).for_each(|i| {
+                        let run_result =
+                            get_kmeans(k, max_iter, converge, verbose, &rgb, seed + i as u64);
+                        if run_result.score < result.score {
+                            result = run_result;
+                        }
+                    });
+                }
 
                 // We want to sort the user centroids based on the kmeans colors
                 // sorted by luminosity using the u8 returned in `sorted`. This
