@@ -7,9 +7,9 @@ Calculate the `k` average colors in an image using k-means clustering with
 k-means++ initialization.
 
 k-means can find the dominant colors or color palette of an image. Other
-applications in this crate are binarization and "color style" transfer. The
-crate wraps around a generic [k-means implementation][lib] that supports Lloyd's
-and Hamerly's algorithms for arbitrary data types.
+applications in this crate are binarization and "color style" transfer.
+`kmeans-colors` wraps around a generic [k-means implementation][lib] that
+supports Lloyd's and Hamerly's algorithms for arbitrary data types.
 
 [lib]: https://docs.rs/kmeans_colors/
 
