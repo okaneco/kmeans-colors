@@ -25,7 +25,7 @@ that color. This process repeats until the centroids stop moving or the maximum
 step count is reached.
 
 ```
-kmeans_colors -i gfx/pink.jpg -k 2 -r 3 -o pink2
+kmeans_colors -i gfx/pink.jpg -k 2 -o pink2
 ```
 
 The animation above is a composite of k=2 to k=9 k-means with the preceding
@@ -55,21 +55,22 @@ image. The default sorting method is from darkest to lightest, passing `--sort`
 will rearrange the palette in order from most frequent to least frequent color.
 The `--height` and `--width` of the palette can be specified as well as output
 name with `--op`. Passing `-k 1` will produce the average color of the image.
+`--no-file` is passed to bypass saving the result of the original image.
 
 ## 3) The `find` subcommand
 
 ### a) Binary Ferris Example
 
 We can use k-means to clean up this doodle and extract the line work from it.
-The paper this is on is folded and scribbled over with highlighter and 
-blue pencil, the back of the sheet also has ink on it.
+The paper this is on is folded and scribbled over with highlighter and blue
+pencil, the back of the sheet also has ink on it.
 
 ![Drawing of Ferris the crab with highlighter](gfx/ferris.jpg)
 
 ---
 
 ```
-kmeans_colors -i gfx/ferris.jpg -k 2 -r 3 -o gfx/ferris-2color.png
+kmeans_colors -i gfx/ferris.jpg -k 2 -o gfx/ferris-2color.png
 ```
 ![Yellow highlighter on paper](gfx/ferris-2color.png)
 
@@ -79,7 +80,7 @@ the highlighter and the average of the ink and paper.
 ---
 
 ```
-kmeans_colors -i gfx/ferris.jpg -k 3 -r 3 -o gfx/ferris-3color.png
+kmeans_colors -i gfx/ferris.jpg -k 3 -o gfx/ferris-3color.png
 ```
 ![Crab drawing with 3 colors](gfx/ferris-3color.png)
 
@@ -114,7 +115,7 @@ right. Running the following command prints the 12 colors below in order from
 darkest to lightest in hexadecimal.
 
 ```
-kmeans_colors -i gfx/flowers.jpg -r 3 -p -k 12 --no-file
+kmeans_colors -i gfx/flowers.jpg -p -k 12 --no-file
 ```
 ```
 492f38,6c363e,8d444e,ae525b,8c6779,677a9b,b87078,4b95bb,a499b0,d7969d,e3b8c0,c5c6da
@@ -166,17 +167,15 @@ score gets smaller as the colors converge. This can be helpful for
 troubleshooting if results are unexpected since the k-means may not have
 converged. The `-p` flag prints the colors in hexadecimal ordered from darkest
 to brightest as seen below. The `--pct` flag prints the percentage of each color
-present in the result image. Finally, `--no-file` can be passed in order to
-avoid writing out a result image.
+present in the resulting image.
 
 ```
 gfx/pink.jpg
-Score: 37370.32
-Score: 18.397617
-Score: 0.2376602
-Iterations: 2
-4d5f60,dd5d5b
-0.6613,0.3387
+Score: 62.90416
+Score: 0.05048233
+Iterations: 1
+4e5f60,dc5d5c
+0.6605,0.3395
 ```
 
 ## *Usage Notes:*
@@ -186,11 +185,6 @@ the process and keep the best result. The `-m` flag can be used to specify the
 max amount of iterations to perform. Lastly, the convergence factor can be
 specified with `-f`. Larger image files will take longer to complete so
 defaults were carefully selected for each of these.
-
-A conservative setting of `-r 3 -m 40` nearly ensures convergence with Lab for
-smaller `k` values (below ~40) in a reasonable amount of time. Finding the
-`--rgb` k-means converges very quickly and tends to happen in under 10
-iterations for small `k`.
 
 The `--transparent` flag can be passed when working with transparent PNG images.
 The k-means will be calculated without factoring in any pixels with

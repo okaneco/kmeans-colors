@@ -98,18 +98,16 @@
 //! # assert_eq!(Srgb::into_raw_slice(&buffer), [119, 119, 119, 119, 119, 119]);
 //! ```
 //!
-//! Because the initial seeds are random, the k-means calculation should be run
-//! multiple times in order to assure that the best result has been found. The
-//! algorithm may find itself in local minima that is not the optimal result.
-//! This is especially true for `Lab` but `Srgb` may only need one run.
+//! k-means++ is used for centroid initialization. Because the initialization is
+//! random, the k-means calculation may be run multiple times to assure that
+//! the best result has been found. The algorithm can find itself in a
+//! sub-optimal result due to initial centroids.
 //!
-//! The binary uses `8` as the default `k`. The iteration limit is set to `20`,
-//! RGB usually converges in under 10 iterations depending on the `k`. The
-//! convergence factor defaults to `10.0` for `Lab` and `0.0025` for `Srgb`. The
-//! number of runs defaults to `3` for one of the binary subcommands. Through
-//! testing, these numbers were found to be an adequate trade-off between
-//! performance and accuracy. If the results do not appear correct, raise the
-//! iteration limit as convergence was probably not met.
+//! The binary uses `8` as the default `k`. The iteration limit is set to `20`.
+//! The convergence factor defaults to `5.0` for `Lab` and `0.0025` for `Srgb`.
+//! The number of runs defaults to `3` for one of the binary subcommands.
+//! If the results do not appear correct, raise the iteration limit as
+//! convergence was probably not met.
 //!
 //! ### Getting the dominant color
 //!

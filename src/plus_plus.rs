@@ -5,6 +5,12 @@ use crate::Calculate;
 
 /// k-means++ centroid initialization.
 ///
+/// # Panics
+///
+/// Panics if buffer is empty.
+///
+/// # Reference
+///
 /// Based on Section 2.2 from `k-means++: The Advantages of Careful Seeding` by
 /// Arthur and Vassilvitskii (2007).
 pub fn init_plus_plus<C: Calculate + Clone>(
@@ -16,8 +22,9 @@ pub fn init_plus_plus<C: Calculate + Clone>(
     if k == 0 {
         return;
     }
-
     let len = buf.len();
+    assert!(len > 0);
+
     let mut weights: Vec<f32> = (0..len).map(|_| 0.0).collect();
 
     // Choose first centroid at random, uniform sampling from input buffer
@@ -39,6 +46,11 @@ pub fn init_plus_plus<C: Calculate + Clone>(
             }
             *dist = min;
             sum += min;
+        }
+
+        // If centroids match all colors, return
+        if !sum.is_normal() {
+            return;
         }
 
         // Divide distances by sum to find D^2 weighting for distribution

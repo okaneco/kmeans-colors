@@ -1,5 +1,11 @@
 # `kmeans-colors` changelog
 
+## Version 0.3.2 - 2020-06-03
+
+Bug fix for k-means++ to avoid divide by zero errors and panics with rand.
+
+[#23][23] - Fix bugs introduced by switch to kmeans++  
+
 ## Version 0.3.1 - 2020-06-03
 
 Major performance improvements in the form of algorithmic
@@ -40,6 +46,7 @@ performance to color and format conversions.
 ## Version 0.1.0 - 2020-04
 * Initial Commit
 
+[23]: https://github.com/okaneco/kmeans-colors/pull/23
 [20]: https://github.com/okaneco/kmeans-colors/pull/20
 [18]: https://github.com/okaneco/kmeans-colors/pull/18
 [16]: https://github.com/okaneco/kmeans-colors/pull/16

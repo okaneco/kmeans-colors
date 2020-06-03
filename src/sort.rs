@@ -55,6 +55,7 @@ impl<Wp: WhitePoint> Sort for Lab<Wp> {
         }
 
         let len = indices.len();
+        assert!(len > 0);
         let mut colors: Vec<(u8, f32)> = Vec::with_capacity(centroids.len());
         for (i, _) in centroids.iter().enumerate() {
             let count = map.get(&(i as u8));
@@ -117,6 +118,7 @@ impl Sort for Srgb {
         }
 
         let len = indices.len();
+        assert!(len > 0);
         let mut colors: Vec<(u8, f32)> = Vec::with_capacity(centroids.len());
         for (i, _) in centroids.iter().enumerate() {
             let count = map.get(&(i as u8));
