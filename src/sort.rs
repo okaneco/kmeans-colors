@@ -1,6 +1,8 @@
 #[cfg(feature = "palette_color")]
 use palette::luma::Luma;
 #[cfg(feature = "palette_color")]
+use palette::white_point::WhitePoint;
+#[cfg(feature = "palette_color")]
 use palette::{Lab, Srgb};
 #[cfg(feature = "palette_color")]
 use std::collections::HashMap;
@@ -31,7 +33,7 @@ pub trait Sort: Sized + Calculate {
 }
 
 #[cfg(feature = "palette_color")]
-impl Sort for Lab {
+impl<Wp: WhitePoint> Sort for Lab<Wp> {
     fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self> {
         let res = data
             .iter()
@@ -63,7 +65,7 @@ impl Sort for Lab {
         }
 
         // Sort by increasing luminosity
-        let mut lab: Vec<(u8, Lab)> = centroids
+        let mut lab: Vec<(u8, Self)> = centroids
             .iter()
             .enumerate()
             .map(|(i, x)| (i as u8, *x))
