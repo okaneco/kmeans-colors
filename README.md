@@ -3,12 +3,13 @@
 [![Crates.io](https://img.shields.io/crates/v/kmeans-colors.svg)](https://crates.io/crates/kmeans-colors)
 [![Docs.rs](https://docs.rs/kmeans_colors/badge.svg)](https://docs.rs/kmeans_colors)
 
-Calculate the `k` average colors in an image using k-means clustering.
+Calculate the `k` average colors in an image using k-means clustering with
+k-means++ initialization.
 
 k-means can find the dominant colors or color palette of an image. Other
-applications in this crate are binarization, line extraction, and "color style"
-transfer. The crate wraps around a generic [k-means implementation][lib] that 
-supports Lloyd's and Hamerly's algorithms for arbitrary data types.
+applications in this crate are binarization and "color style" transfer. The
+crate wraps around a generic [k-means implementation][lib] that supports Lloyd's
+and Hamerly's algorithms for arbitrary data types.
 
 [lib]: https://docs.rs/kmeans_colors/
 
@@ -205,8 +206,8 @@ the results.
 - print the average colors
 - print the percentage of each color in the image
 - transparency support
-- adaptive switching between LLoyd's and Hamerly's algorithms based on `k` count
-- supports multiple images as input to process
+- kmeans++ center initialization
+- supports multiple images as input to batch process
 - specify random seed for reproducible results
 
 ## License
