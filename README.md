@@ -5,6 +5,19 @@
 
 Calculate the `k` average colors in an image using k-means clustering.
 
+k-means can find the dominant colors or color palette of an image. Other
+applications in this crate are binarization, line extraction, and "color style"
+transfer. The crate wraps around a generic [k-means implementation][lib] that 
+supports Lloyd's and Hamerly's algorithms for arbitrary data types.
+
+[lib]: https://docs.rs/kmeans_colors/
+
+## 1) Basic usage
+![Animation of flowers](gfx/pink.gif)
+```
+kmeans_colors -i gfx/pink.jpg -k 2 -r 3 -o pink2
+```
+
 k-means clustering works by starting with an initial random guess of the `k`
 number of colors in the image called `centroids`. For each step, every pixel in
 the image is traversed to find what centroid is closest to it in color. Then,
@@ -12,26 +25,12 @@ the centroids calculate the average of all the colors close to them and move to
 that color. This process repeats until the centroids stop moving or the maximum
 step count is reached.
 
-The k-means can be used to find the dominant colors or color palette of an
-image. Some other applications are binarization, line extraction, and "color
-style" transfer. The crate wraps around a generic [k-means implementation][lib].
-
-[lib]: https://docs.rs/kmeans_colors/
-
-## Examples
-
-### 1) Basic usage
-```
-kmeans_colors -i gfx/pink.jpg -k 2 -r 3 -o pink2
-```
-![Animation of flowers](gfx/pink.gif)
-
 The animation is a composite of k=2 to k=9 k-means with the above command.
 `-k` is the number of colors to find in the image. `-r` is the amount of runs
 to perform, `-o` specifies the output. By default, the images will save as .png
 files. The `-o` option is not required.
 
-### 2) Color palettes
+## 2) Color palettes
 
 ```
 kmeans_colors -i gfx/lanterns.jpg --no-file --palette
@@ -54,9 +53,9 @@ will rearrange the palette in order from most frequent to least frequent color.
 The `--height` and `--width` of the palette can be specified as well as output
 name with `--op`. Passing `-k 1` will produce the average color of the image.
 
-### 3) The `find` subcommand
+## 3) The `find` subcommand
 
-#### a) Binary Ferris Example
+### a) Binary Ferris Example
 
 We can use k-means to clean up this doodle and extract the line work from it.
 The paper this is on is folded and scribbled over with highlighter and 
@@ -97,7 +96,7 @@ subcommand with the `-c` option, which allows us to specify the colors black
 iteration to find the nearest colors in the image to the colors passed with
 `-c`.
 
-#### b) The `--replace` flag
+### b) The `--replace` flag
 
 With `--replace`, we run the k-means calculation on an image and replace the
 centroids with our own custom colors. The colors we input will replace the
@@ -155,7 +154,7 @@ kmeans_colors find -i gfx/ferris-find.png -c de4a18,bee0fa --replace -o gfx/ferr
 combination. They don't do anything with `find` by itself, since only one
 iteration is needed to produce the result.
 
-### 4) Print, Percentage, & Verbose
+## 4) Print, Percentage, & Verbose
 
 `kmeans_colors -i gfx/pink.jpg -k 2 -pv --pct --no-file`
 
@@ -177,7 +176,7 @@ Iterations: 2
 0.6613,0.3387
 ```
 
-### *Usage Notes:*
+## *Usage Notes:*
 k-means can get stuck in local minima which prevent it from finding the best
 result. To combat this, the amount of runs can be specified with `-r` to repeat
 the process and keep the best result. The `-m` flag can be used to specify the
@@ -204,6 +203,7 @@ the results.
 - print the average colors
 - print the percentage of each color in the image
 - transparency support
+- adaptive switching between LLoyd's and Hamerly's algorithms based on `k` count
 - supports multiple images as input to process
 - specify random seed for reproducible results
 

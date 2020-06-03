@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::Calculate;
 
-/// A struct containing a centroid, its percentage within a buffer, and the
+/// Struct containing a centroid, its percentage within a buffer, and the
 /// centroid's index.
 #[derive(Clone, Debug, Default)]
 pub struct CentroidData<C: Calculate> {
