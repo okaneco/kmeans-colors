@@ -29,7 +29,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
         match opt.factor {
             Some(x) => converge = x,
             None => {
-                converge = if !opt.rgb { 10.0 } else { 0.0025 };
+                converge = if !opt.rgb { 5.0 } else { 0.0025 };
             }
         }
 
@@ -328,7 +328,7 @@ pub fn find_colors(
     match factor {
         Some(x) => converge = x,
         None => {
-            converge = if !rgb { 8.0 } else { 0.0025 };
+            converge = if !rgb { 5.0 } else { 0.0025 };
         }
     }
 
