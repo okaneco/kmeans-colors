@@ -12,11 +12,9 @@ supports Lloyd's and Hamerly's algorithms for arbitrary data types.
 
 [lib]: https://docs.rs/kmeans_colors/
 
-## 1) Basic usage
 ![Animation of flowers](gfx/pink.gif)
-```
-kmeans_colors -i gfx/pink.jpg -k 2 -r 3 -o pink2
-```
+
+## 1) Basic usage
 
 k-means clustering works by starting with an initial random guess of the `k`
 number of colors in the image called `centroids`. For each step, every pixel in
@@ -25,10 +23,14 @@ the centroids calculate the average of all the colors close to them and move to
 that color. This process repeats until the centroids stop moving or the maximum
 step count is reached.
 
-The animation is a composite of k=2 to k=9 k-means with the above command.
-`-k` is the number of colors to find in the image. `-r` is the amount of runs
-to perform, `-o` specifies the output. By default, the images will save as .png
-files. The `-o` option is not required.
+```
+kmeans_colors -i gfx/pink.jpg -k 2 -r 3 -o pink2
+```
+
+The animation above is a composite of k=2 to k=9 k-means with the preceding
+command. `-k` is the number of colors to find in the image. `-r` is the amount
+of runs to perform, `-o` specifies the output. By default, the images will save
+as .png files. The `-o` option is not required.
 
 ## 2) Color palettes
 

@@ -31,10 +31,10 @@ pub trait Calculate: Sized {
     fn difference(c1: &Self, c2: &Self) -> f32;
 }
 
-/// Struct result of k-means calculation with convergence score, centroids, and indexed
-/// buffer.
+/// Struct result of k-means calculation with convergence score, centroids, and
+/// indexed buffer.
 #[derive(Clone, Debug, Default)]
-pub struct Kmeans<C: Sized> {
+pub struct Kmeans<C: Calculate> {
     /// Sum of squares distance metric for centroids compared to old centroids.
     pub score: f32,
     /// Points determined to be centroids of input buffer.
@@ -328,8 +328,8 @@ pub struct HamerlyPoint {
     pub index: u8,
     /// Closest centroid's distance to this point.
     pub upper_bound: f32,
-    /// Minimum distance any centroid that's not the closest can be to this
-    /// point.
+    /// Minimum distance that any centroid beyond the closest centroid can be
+    /// to this point.
     pub lower_bound: f32,
 }
 
