@@ -52,7 +52,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Iterate over amount of runs keeping best results
             let mut result = Kmeans::new();
-            if opt.k > 5 {
+            if opt.k > 1 {
                 (0..opt.runs).for_each(|i| {
                     let run_result = get_kmeans_hamerly(
                         opt.k as usize,
@@ -185,7 +185,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
 
             // Iterate over amount of runs keeping best results
             let mut result = Kmeans::new();
-            if opt.k > 5 {
+            if opt.k > 1 {
                 (0..opt.runs).for_each(|i| {
                     let run_result = get_kmeans_hamerly(
                         opt.k as usize,
@@ -403,7 +403,7 @@ pub fn find_colors(
 
                 let mut result = Kmeans::new();
                 let k = centroids.len();
-                if k > 5 {
+                if k > 1 {
                     (0..runs).for_each(|i| {
                         let run_result = get_kmeans_hamerly(
                             k,
@@ -527,7 +527,7 @@ pub fn find_colors(
 
                 let mut result = Kmeans::new();
                 let k = centroids.len();
-                if k > 5 {
+                if k > 1 {
                     (0..runs).for_each(|i| {
                         let run_result = get_kmeans_hamerly(
                             k,

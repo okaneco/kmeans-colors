@@ -5,6 +5,8 @@ use palette::{Component, Lab, Laba, Srgb, Srgba};
 
 use rand::{Rng, SeedableRng};
 
+use crate::plus_plus::init_plus_plus;
+
 /// A trait for enabling k-means calculation of a data type.
 pub trait Calculate: Sized {
     /// Find a points's nearest centroid, index the point with that centroid.
@@ -76,7 +78,7 @@ pub fn get_kmeans<C: Calculate + Clone>(
     // Initialize the random centroids
     let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(seed);
     let mut centroids: Vec<C> = Vec::with_capacity(k);
-    (0..k).for_each(|_| centroids.push(C::create_random(&mut rng)));
+    init_plus_plus(k, &mut rng, buf, &mut centroids);
 
     // Initialize indexed buffer and convergence variables
     let mut iterations = 0;
@@ -382,7 +384,7 @@ pub fn get_kmeans_hamerly<C: Hamerly + Clone>(
     // Initialize the random centroids
     let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(seed);
     let mut centers: HamerlyCentroids<C> = HamerlyCentroids::new(k);
-    (0..k).for_each(|_| centers.centroids.push(Calculate::create_random(&mut rng)));
+    init_plus_plus(k, &mut rng, buf, &mut centers.centroids);
 
     // Initialize points buffer and convergence variables
     let mut iterations = 0;

@@ -166,6 +166,7 @@
 //! ```
 
 mod kmeans;
+mod plus_plus;
 mod sort;
 
 #[cfg(feature = "palette_color")]
@@ -174,4 +175,5 @@ pub use kmeans::MapColor;
 pub use kmeans::{
     get_kmeans, get_kmeans_hamerly, Calculate, Hamerly, HamerlyCentroids, HamerlyPoint, Kmeans,
 };
+pub use plus_plus::init_plus_plus;
 pub use sort::{CentroidData, Sort};
