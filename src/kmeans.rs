@@ -366,7 +366,7 @@ impl HamerlyPoint {
 /// Those clusters tend to converge early and all the points that belong
 /// to them can skip their distance calculations.
 ///
-/// ## Referenece
+/// ## Reference
 ///
 /// Hamerly, G., & Drake, J. (2017). Chapter 2 Accelerating Lloyd's Algorithm
 /// for k-Means Clustering.
