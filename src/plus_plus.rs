@@ -48,7 +48,7 @@ pub fn init_plus_plus<C: Calculate + Clone>(
             sum += min;
         }
 
-        // If centroids match all colors, return
+        // If centroids match all colors, return early
         if !sum.is_normal() {
             return;
         }

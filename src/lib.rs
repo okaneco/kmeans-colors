@@ -25,11 +25,11 @@
 //! [`Hamerly`](trait.Hamerly.html) can be implemented to enable use of the
 //! Hamerly optimization and [`get_kmeans_hamerly`][hamerly]. See the `Lab` and
 //! `Srgb` implementations in [`kmeans.rs`][kmeans] for examples. These
-//! implementations can be used as groundwork for implementing with other types,
+//! implementations can be used as groundwork for implementing with other types
 //! and should not require much modification beyond the distance calculations.
 //!
 //! [hamerly]: fn.get_kmeans_hamerly.html
-//! [kmeans]: ../src/kmeans_colors/kmeans.rs.html#119
+//! [kmeans]: ../src/kmeans_colors/kmeans.rs.html#122
 //!
 //! ## Calculating k-means with `palette_color`
 //!
