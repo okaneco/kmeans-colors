@@ -209,5 +209,10 @@ pub enum Command {
         /// to the filename. File type extension can be declared here for `.jpg`.
         #[structopt(short, long, parse(from_os_str))]
         output: Option<PathBuf>,
+
+        /// Ignore pixels with any transparency for calculation of k-means, produce
+        /// transparent output image.
+        #[structopt(long)]
+        transparent: bool,
     },
 }
