@@ -84,13 +84,14 @@ pub fn save_image(
 ) -> Result<(), Box<dyn Error>> {
     let mut w = BufWriter::new(File::create(title)?);
     if title.extension().unwrap() == "png" {
-        let mut enc = png::Encoder::new(w, imgx, imgy);
-        enc.set_color(png::ColorType::RGB);
-        enc.set_compression(png::Compression::Best);
-        enc.set_filter(png::FilterType::NoFilter);
+        let encoder = image::png::PNGEncoder::new_with_quality(
+            w,
+            image::png::CompressionType::Best,
+            image::png::FilterType::NoFilter,
+        );
 
         // Clean up if file is created but there's a problem writing to it
-        match enc.write_header()?.write_image_data(imgbuf) {
+        match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgb8) {
             Ok(_) => {}
             Err(err) => {
                 eprintln!("Error: {}.", err);
@@ -121,13 +122,14 @@ pub fn save_image_alpha(
 ) -> Result<(), Box<dyn Error>> {
     let mut w = BufWriter::new(File::create(title)?);
     if title.extension().unwrap() == "png" {
-        let mut enc = png::Encoder::new(w, imgx, imgy);
-        enc.set_color(png::ColorType::RGBA);
-        enc.set_compression(png::Compression::Best);
-        enc.set_filter(png::FilterType::NoFilter);
+        let encoder = image::png::PNGEncoder::new_with_quality(
+            w,
+            image::png::CompressionType::Best,
+            image::png::FilterType::NoFilter,
+        );
 
         // Clean up if file is created but there's a problem writing to it
-        match enc.write_header()?.write_image_data(imgbuf) {
+        match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgba8) {
             Ok(_) => {}
             Err(err) => {
                 eprintln!("Error: {}.", err);
