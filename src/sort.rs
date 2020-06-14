@@ -45,7 +45,7 @@ impl<Wp: WhitePoint> Sort for Lab<Wp> {
 
     fn sort_indexed_colors(centroids: &Vec<Self>, indices: &[u8]) -> Vec<CentroidData<Self>> {
         // Count occurences of each color - "histogram"
-        let mut map: HashMap<u8, u32> = HashMap::new();
+        let mut map: HashMap<u8, u64> = HashMap::new();
         for (i, _) in centroids.iter().enumerate() {
             map.insert(i as u8, 0);
         }
@@ -108,7 +108,7 @@ impl Sort for Srgb {
 
     fn sort_indexed_colors(centroids: &Vec<Self>, indices: &[u8]) -> Vec<CentroidData<Self>> {
         // Count occurences of each color - "histogram"
-        let mut map: HashMap<u8, u32> = HashMap::new();
+        let mut map: HashMap<u8, u64> = HashMap::new();
         for (i, _) in centroids.iter().enumerate() {
             map.insert(i as u8, 0);
         }

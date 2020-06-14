@@ -429,23 +429,25 @@ pub fn get_kmeans_hamerly<C: Hamerly + Clone>(
 impl<Wp: WhitePoint> Hamerly for Lab<Wp> {
     fn compute_half_distances(centers: &mut HamerlyCentroids<Self>) {
         // Find each center's closest center
-        for i in 0..centers.centroids.len() {
+        for ((i, ci), half_dist) in centers
+            .centroids
+            .iter()
+            .enumerate()
+            .zip(centers.half_distances.iter_mut())
+        {
             let mut diff;
             let mut min = f32::MAX;
-            for j in 0..centers.centroids.len() {
+            for (j, cj) in centers.centroids.iter().enumerate() {
                 // Don't compare centroid to itself
                 if i == j {
                     continue;
                 }
-                diff = Self::difference(
-                    &centers.centroids.get(i).unwrap(),
-                    &centers.centroids.get(j).unwrap(),
-                );
+                diff = Self::difference(&ci, &cj);
                 if diff < min {
                     min = diff;
                 }
             }
-            centers.half_distances[i] = min.sqrt() * 0.5;
+            *half_dist = min.sqrt() * 0.5;
         }
     }
 
@@ -454,27 +456,23 @@ impl<Wp: WhitePoint> Hamerly for Lab<Wp> {
         centers: &HamerlyCentroids<Self>,
         points: &mut [HamerlyPoint],
     ) {
-        for (i, val) in buffer.iter().enumerate() {
-            assert!(i < buffer.len());
+        for (val, point) in buffer.iter().zip(points.iter_mut()) {
             // Assign max of lower bound and half distance to z
             let z = centers
                 .half_distances
-                .get(points[i].index as usize)
+                .get(point.index as usize)
                 .unwrap()
-                .max(points[i].lower_bound);
+                .max(point.lower_bound);
 
-            if points[i].upper_bound <= z {
+            if point.upper_bound <= z {
                 continue;
             }
 
             // Tighten upper bound
-            points[i].upper_bound = Self::difference(
-                val,
-                centers.centroids.get(points[i].index as usize).unwrap(),
-            )
-            .sqrt();
+            point.upper_bound =
+                Self::difference(val, centers.centroids.get(point.index as usize).unwrap()).sqrt();
 
-            if points[i].upper_bound <= z {
+            if point.upper_bound <= z {
                 continue;
             }
 
@@ -499,11 +497,11 @@ impl<Wp: WhitePoint> Hamerly for Lab<Wp> {
                 }
             }
 
-            if c1 as u8 != points[i].index {
-                points[i].index = c1 as u8;
-                points[i].upper_bound = min1.sqrt();
+            if c1 as u8 != point.index {
+                point.index = c1 as u8;
+                point.upper_bound = min1.sqrt();
             }
-            points[i].lower_bound = min2.sqrt();
+            point.lower_bound = min2.sqrt();
         }
     }
 
@@ -513,7 +511,12 @@ impl<Wp: WhitePoint> Hamerly for Lab<Wp> {
         centers: &mut HamerlyCentroids<Self>,
         points: &[HamerlyPoint],
     ) {
-        for (idx, cent) in centers.centroids.iter_mut().enumerate() {
+        for ((idx, cent), delta) in centers
+            .centroids
+            .iter_mut()
+            .enumerate()
+            .zip(centers.deltas.iter_mut())
+        {
             let mut l = 0.0;
             let mut a = 0.0;
             let mut b = 0.0;
@@ -533,11 +536,11 @@ impl<Wp: WhitePoint> Hamerly for Lab<Wp> {
                     b: b / (counter as f32),
                     white_point: core::marker::PhantomData,
                 };
-                centers.deltas[idx] = Self::difference(cent, &new_color).sqrt();
+                *delta = Self::difference(cent, &new_color).sqrt();
                 *cent = new_color;
             } else {
                 let new_color = Self::create_random(&mut rng);
-                centers.deltas[idx] = Self::difference(cent, &new_color).sqrt();
+                *delta = Self::difference(cent, &new_color).sqrt();
                 *cent = new_color;
             }
         }
@@ -551,9 +554,9 @@ impl<Wp: WhitePoint> Hamerly for Lab<Wp> {
             }
         }
 
-        for i in 0..points.len() {
-            points[i].upper_bound += centers.deltas.get(points[i].index as usize).unwrap();
-            points[i].lower_bound -= delta_p;
+        for point in points.iter_mut() {
+            point.upper_bound += centers.deltas.get(point.index as usize).unwrap();
+            point.lower_bound -= delta_p;
         }
     }
 }
@@ -562,23 +565,25 @@ impl<Wp: WhitePoint> Hamerly for Lab<Wp> {
 impl Hamerly for Srgb {
     fn compute_half_distances(centers: &mut HamerlyCentroids<Self>) {
         // Find each center's closest center
-        for i in 0..centers.centroids.len() {
+        for ((i, ci), half_dist) in centers
+            .centroids
+            .iter()
+            .enumerate()
+            .zip(centers.half_distances.iter_mut())
+        {
             let mut diff;
             let mut min = f32::MAX;
-            for j in 0..centers.centroids.len() {
+            for (j, cj) in centers.centroids.iter().enumerate() {
                 // Don't compare centroid to itself
                 if i == j {
                     continue;
                 }
-                diff = Self::difference(
-                    &centers.centroids.get(i).unwrap(),
-                    &centers.centroids.get(j).unwrap(),
-                );
+                diff = Self::difference(&ci, &cj);
                 if diff < min {
                     min = diff;
                 }
             }
-            centers.half_distances[i] = min.sqrt() * 0.5;
+            *half_dist = min.sqrt() * 0.5;
         }
     }
 
@@ -587,27 +592,23 @@ impl Hamerly for Srgb {
         centers: &HamerlyCentroids<Self>,
         points: &mut [HamerlyPoint],
     ) {
-        for (i, val) in buffer.iter().enumerate() {
-            assert!(i < buffer.len());
+        for (val, point) in buffer.iter().zip(points.iter_mut()) {
             // Assign max of lower bound and half distance to z
             let z = centers
                 .half_distances
-                .get(points[i].index as usize)
+                .get(point.index as usize)
                 .unwrap()
-                .max(points[i].lower_bound);
+                .max(point.lower_bound);
 
-            if points[i].upper_bound <= z {
+            if point.upper_bound <= z {
                 continue;
             }
 
             // Tighten upper bound
-            points[i].upper_bound = Self::difference(
-                val,
-                centers.centroids.get(points[i].index as usize).unwrap(),
-            )
-            .sqrt();
+            point.upper_bound =
+                Self::difference(val, centers.centroids.get(point.index as usize).unwrap()).sqrt();
 
-            if points[i].upper_bound <= z {
+            if point.upper_bound <= z {
                 continue;
             }
 
@@ -632,11 +633,11 @@ impl Hamerly for Srgb {
                 }
             }
 
-            if c1 as u8 != points[i].index {
-                points[i].index = c1 as u8;
-                points[i].upper_bound = min1.sqrt();
+            if c1 as u8 != point.index {
+                point.index = c1 as u8;
+                point.upper_bound = min1.sqrt();
             }
-            points[i].lower_bound = min2.sqrt();
+            point.lower_bound = min2.sqrt();
         }
     }
 
@@ -646,7 +647,12 @@ impl Hamerly for Srgb {
         centers: &mut HamerlyCentroids<Self>,
         points: &[HamerlyPoint],
     ) {
-        for (idx, cent) in centers.centroids.iter_mut().enumerate() {
+        for ((idx, cent), delta) in centers
+            .centroids
+            .iter_mut()
+            .enumerate()
+            .zip(centers.deltas.iter_mut())
+        {
             let mut red = 0.0;
             let mut green = 0.0;
             let mut blue = 0.0;
@@ -666,11 +672,11 @@ impl Hamerly for Srgb {
                     blue: blue / (counter as f32),
                     standard: core::marker::PhantomData,
                 };
-                centers.deltas[idx] = Self::difference(cent, &new_color).sqrt();
+                *delta = Self::difference(cent, &new_color).sqrt();
                 *cent = new_color;
             } else {
                 let new_color = Self::create_random(&mut rng);
-                centers.deltas[idx] = Self::difference(cent, &new_color).sqrt();
+                *delta = Self::difference(cent, &new_color).sqrt();
                 *cent = new_color;
             }
         }
@@ -684,9 +690,9 @@ impl Hamerly for Srgb {
             }
         }
 
-        for i in 0..points.len() {
-            points[i].upper_bound += centers.deltas.get(points[i].index as usize).unwrap();
-            points[i].lower_bound -= delta_p;
+        for point in points.iter_mut() {
+            point.upper_bound += centers.deltas.get(point.index as usize).unwrap();
+            point.lower_bound -= delta_p;
         }
     }
 }
