@@ -354,17 +354,9 @@ impl HamerlyPoint {
 /// calculation for each point more often. Asymptotically, this algorithm
 /// performs better than the default algorithm for lower dimensional k-means
 /// taking advantage of the fact than some centroids converge very quickly.
-/// However, this method incurs additional overhead that makes it perform about
-/// the same or slightly worse at low center counts. Benchmark the functions to
+/// However, this method incurs additional overhead that may perform worse than
+/// the naive method at low center counts like `k=1`. Benchmark the functions to
 /// see which performs better for your use case.
-///
-/// Below about `k=6`, the default LLoyd's algorithm seems to perform better for
-/// three dimensional points like colors but it depends on the data. If there
-/// are many similar points, the algorithm may end up with the extra overhead
-/// and having to compute the inner loop many times as the centers fluctuate.
-/// Hamerly's algorithm excels when there is clear segmentation of clusters.
-/// Those clusters tend to converge early and all the points that belong
-/// to them can skip their distance calculations.
 ///
 /// ## Reference
 ///

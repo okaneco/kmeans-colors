@@ -101,7 +101,8 @@
 //! k-means++ is used for centroid initialization. Because the initialization is
 //! random, the k-means calculation may be run multiple times to assure that
 //! the best result has been found. The algorithm can find itself in a
-//! sub-optimal result due to initial centroids.
+//! sub-optimal result due to initial centroids, however, one run may suffice if
+//! the convergence threshold has been met.
 //!
 //! The binary uses `8` as the default `k`. The iteration limit is set to `20`.
 //! The convergence factor defaults to `5.0` for `Lab` and `0.0025` for `Srgb`.
