@@ -1,5 +1,16 @@
 # `kmeans-colors` changelog
 
+## Version 0.3.3 - 2020-06-17
+
+Added transparency support to the `find` sub-command. This will now work like
+the main command where transparent pixels are disregarded for the k-means
+calculation. Upstream dependencies have been updated, notably reading in PNG
+images should have improved performance for the binary.
+
+[#27][27] - Add transparency support for find/replace  
+[#26][26] - Update dependencies  
+[#25][25] - Refactor out raw array indexing in favor of iterators  
+
 ## Version 0.3.2 - 2020-06-03
 
 Bug fix for k-means++ to avoid divide by zero errors and panics with rand.
@@ -46,6 +57,9 @@ performance to color and format conversions.
 ## Version 0.1.0 - 2020-04
 * Initial Commit
 
+[27]: https://github.com/okaneco/kmeans-colors/pull/27
+[26]: https://github.com/okaneco/kmeans-colors/pull/26
+[25]: https://github.com/okaneco/kmeans-colors/pull/25
 [23]: https://github.com/okaneco/kmeans-colors/pull/23
 [20]: https://github.com/okaneco/kmeans-colors/pull/20
 [18]: https://github.com/okaneco/kmeans-colors/pull/18
