@@ -36,20 +36,21 @@ as .png files. The `-o` option is not required.
 ## 2) Color palettes
 
 ```
-kmeans_colors -i gfx/lanterns.jpg --no-file --palette
+kmeans_colors -i gfx/mountains.jpg --no-file --palette
 ```
-![Red color palette](gfx/lanterns-lab-8.png)
+![Picture of mountain and color palette](gfx/mtn-palette.jpg)
 
 ```
 kmeans_colors -i gfx/pink.jpg --no-file --palette --proportional
 ```
 ![Green and red color palette](gfx/pink-lab-8.png)
+
 ```
 kmeans_colors -i gfx/flowers.jpg --no-file --palette --proportional --sort
 ```
 ![Blue and pink proportional color palette](gfx/flowers-lab-8.png)
 
-By default, palettes will be composed of equal swatches. Passing
+By default, palettes will be composed of equally sized swatches. Passing
 `--proportional` will scale the swatches proportionally to their presence in the
 image. The default sorting method is from darkest to lightest, passing `--sort`
 will rearrange the palette in order from most frequent to least frequent color.
