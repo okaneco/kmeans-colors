@@ -24,12 +24,12 @@
 //! the [`Calculate`](trait.Calculate.html) trait. Further,
 //! [`Hamerly`](trait.Hamerly.html) can be implemented to enable use of the
 //! Hamerly optimization and [`get_kmeans_hamerly`][hamerly]. See the `Lab` and
-//! `Srgb` implementations in [`kmeans.rs`][kmeans] for examples. These
+//! `Srgb` implementations in [`colors/kmeans.rs`][kmeans] for examples. These
 //! implementations can be used as groundwork for implementing with other types
 //! and should not require much modification beyond the distance calculations.
 //!
 //! [hamerly]: fn.get_kmeans_hamerly.html
-//! [kmeans]: ../src/kmeans_colors/kmeans.rs.html#122
+//! [kmeans]: ../src/kmeans_colors/colors/kmeans.rs.html#9
 //!
 //! ## Calculating k-means with `palette_color`
 //!
@@ -163,13 +163,18 @@
 //! res.sort_unstable_by(|a, b| (b.percentage).partial_cmp(&a.percentage).unwrap());
 //! let dominant_color = res.first().unwrap().centroid;
 //! ```
+#![warn(missing_docs, rust_2018_idioms, unsafe_code)]
+#![warn(clippy::all, clippy::pedantic)]
+
+#[cfg(feature = "palette_color")]
+mod colors;
 
 mod kmeans;
 mod plus_plus;
 mod sort;
 
 #[cfg(feature = "palette_color")]
-pub use kmeans::MapColor;
+pub use colors::MapColor;
 
 pub use kmeans::{
     get_kmeans, get_kmeans_hamerly, Calculate, Hamerly, HamerlyCentroids, HamerlyPoint, Kmeans,

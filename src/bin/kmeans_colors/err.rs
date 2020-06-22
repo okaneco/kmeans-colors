@@ -1,6 +1,3 @@
-use std::error::Error;
-use std::fmt;
-
 #[derive(Debug)]
 pub enum CliError {
     File(std::io::Error),
@@ -27,8 +24,8 @@ impl From<std::time::SystemTimeError> for CliError {
     }
 }
 
-impl fmt::Display for CliError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl std::fmt::Display for CliError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             CliError::File(ref err) => write!(f, "File error: {}", err),
             CliError::InvalidHex => {
@@ -40,8 +37,8 @@ impl fmt::Display for CliError {
     }
 }
 
-impl Error for CliError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
+impl std::error::Error for CliError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
             CliError::File(err) => Some(err),
             CliError::InvalidHex => None,

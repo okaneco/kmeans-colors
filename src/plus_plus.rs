@@ -1,8 +1,6 @@
 use rand::distributions::{Distribution, WeightedIndex};
 use rand::Rng;
 
-use crate::Calculate;
-
 /// k-means++ centroid initialization.
 ///
 /// # Panics
@@ -13,7 +11,7 @@ use crate::Calculate;
 ///
 /// Based on Section 2.2 from `k-means++: The Advantages of Careful Seeding` by
 /// Arthur and Vassilvitskii (2007).
-pub fn init_plus_plus<C: Calculate + Clone>(
+pub fn init_plus_plus<C: crate::Calculate + Clone>(
     k: usize,
     mut rng: &mut impl Rng,
     buf: &[C],

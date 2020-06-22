@@ -1,3 +1,6 @@
+#![warn(rust_2018_idioms, unsafe_code)]
+#![warn(clippy::all, clippy::pedantic)]
+
 mod app;
 mod args;
 mod err;
