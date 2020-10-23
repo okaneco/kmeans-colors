@@ -15,6 +15,15 @@ are binarization and "color style" transfer.
 
 ![Animation of flowers](gfx/pink.gif)
 
+To use as a library, add the following to your `Cargo.toml`; add the
+`palette_color` feature to enable `palette` color types.
+
+```toml
+[dependencies.kmeans_colors]
+version = "0.3"
+default-features = false
+```
+
 ## 1) Basic usage
 
 k-means clustering works by starting with an initial random guess of the `k`
@@ -204,6 +213,12 @@ the results.
 - kmeans++ center initialization
 - supports multiple images as input to batch process
 - specify random seed for reproducible results
+
+## Troubleshooting
+If you get an invalid color error or hex color length error with the command
+line tool, try enclosing the color string in quotes.
+
+For example, instead of `-c 000000,ffffff` use `-c '000000,ffffff'`.
 
 ## License
 This crate is licensed under either
