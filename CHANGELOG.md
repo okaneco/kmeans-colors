@@ -1,5 +1,12 @@
 # `kmeans-colors` changelog
 
+## Version 0.3.4 - 2020-11-16
+
+An upstream package was changed which prevented the crate from building when
+installing with cargo from crates.io.
+
+[#32][32] - Move color impls to their own module, add lints  
+
 ## Version 0.3.3 - 2020-06-17
 
 Added transparency support to the `find` sub-command. This will now work like
@@ -57,6 +64,7 @@ performance to color and format conversions.
 ## Version 0.1.0 - 2020-04
 * Initial Commit
 
+[32]: https://github.com/okaneco/kmeans-colors/pull/32
 [27]: https://github.com/okaneco/kmeans-colors/pull/27
 [26]: https://github.com/okaneco/kmeans-colors/pull/26
 [25]: https://github.com/okaneco/kmeans-colors/pull/25
