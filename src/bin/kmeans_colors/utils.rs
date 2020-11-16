@@ -84,10 +84,10 @@ pub fn save_image(
 ) -> Result<(), Box<dyn Error>> {
     let mut w = BufWriter::new(File::create(title)?);
     if title.extension().unwrap() == "png" {
-        let encoder = image::png::PNGEncoder::new_with_quality(
+        let encoder = image::png::PngEncoder::new_with_quality(
             w,
-            image::png::CompressionType::Best,
-            image::png::FilterType::NoFilter,
+            image::codecs::png::CompressionType::Best,
+            image::codecs::png::FilterType::NoFilter,
         );
 
         // Clean up if file is created but there's a problem writing to it
@@ -99,7 +99,7 @@ pub fn save_image(
             }
         }
     } else {
-        let mut encoder = image::jpeg::JPEGEncoder::new_with_quality(&mut w, 90);
+        let mut encoder = image::jpeg::JpegEncoder::new_with_quality(&mut w, 90);
 
         match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgb8) {
             Ok(_) => {}
@@ -122,10 +122,10 @@ pub fn save_image_alpha(
 ) -> Result<(), Box<dyn Error>> {
     let mut w = BufWriter::new(File::create(title)?);
     if title.extension().unwrap() == "png" {
-        let encoder = image::png::PNGEncoder::new_with_quality(
+        let encoder = image::png::PngEncoder::new_with_quality(
             w,
-            image::png::CompressionType::Best,
-            image::png::FilterType::NoFilter,
+            image::codecs::png::CompressionType::Best,
+            image::codecs::png::FilterType::NoFilter,
         );
 
         // Clean up if file is created but there's a problem writing to it
@@ -137,7 +137,7 @@ pub fn save_image_alpha(
             }
         }
     } else {
-        let mut encoder = image::jpeg::JPEGEncoder::new_with_quality(&mut w, 90);
+        let mut encoder = image::jpeg::JpegEncoder::new_with_quality(&mut w, 90);
 
         match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgba8) {
             Ok(_) => {}

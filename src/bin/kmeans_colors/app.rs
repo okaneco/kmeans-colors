@@ -344,7 +344,7 @@ pub fn find_colors(
         let mut centroids: Vec<Lab> = Vec::with_capacity(colors.len());
         for c in colors {
             centroids.push(
-                (parse_color(c.trim_start_matches("#"))?)
+                (parse_color(c.trim_start_matches('#'))?)
                     .into_format()
                     .into(),
             );
@@ -423,7 +423,7 @@ pub fn find_colors(
                         .zip(data)
                         .map(|(x, orig)| {
                             if orig.alpha == 255 {
-                                Srgba::from(*x)
+                                *x
                             } else {
                                 Srgba::new(0u8, 0, 0, 0)
                             }
@@ -550,7 +550,7 @@ pub fn find_colors(
         let mut centroids: Vec<Srgb> = Vec::with_capacity(colors.len());
         for c in colors {
             centroids.push(
-                (parse_color(c.trim_start_matches("#"))?)
+                (parse_color(c.trim_start_matches('#'))?)
                     .into_format()
                     .into(),
             );
@@ -628,7 +628,7 @@ pub fn find_colors(
                         .zip(data)
                         .map(|(x, orig)| {
                             if orig.alpha == 255 {
-                                Srgba::from(*x)
+                                *x
                             } else {
                                 Srgba::new(0u8, 0, 0, 0)
                             }
