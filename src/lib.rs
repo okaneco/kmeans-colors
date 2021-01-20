@@ -164,7 +164,6 @@
 //! let dominant_color = res.first().unwrap().centroid;
 //! ```
 #![warn(missing_docs, rust_2018_idioms, unsafe_code)]
-#![warn(clippy::all, clippy::pedantic)]
 
 #[cfg(feature = "palette_color")]
 mod colors;

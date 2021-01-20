@@ -6,7 +6,7 @@ use crate::err::CliError;
 /// Creates a `PathBuf` to save the output filename. Handles the case where user
 /// has specified an output and when there are multiple files that need names.
 pub fn create_filename(
-    input: &Vec<PathBuf>,
+    input: &[PathBuf],
     output: &Option<PathBuf>,
     extension: &str,
     k: Option<u8>,
@@ -65,7 +65,7 @@ pub fn create_filename(
 
 /// Creates a `PathBuf` to save the output palette.
 pub fn create_filename_palette(
-    input: &Vec<PathBuf>,
+    input: &[PathBuf],
     output: &Option<PathBuf>,
     rgb: bool,
     k: Option<u8>,

@@ -1,0 +1,61 @@
+name: Rust CI
+
+on:
+  push:
+    branches: master
+  pull_request:
+    branches: master
+  schedule:
+    - cron: "0 0 1 * *" # monthly
+  workflow_dispatch: # allow manual triggering of the action
+
+env:
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  build-crate:
+    name: Build and test crate/docs
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        toolchain: [nightly, beta, stable]
+        include:
+          - os: macos-latest
+            toolchain: stable
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.toolchain }}
+          components: rust-docs
+          override: true
+      - name: Build library
+        run: cargo build -v --lib --no-default-features
+      - name: Build binary
+        run: cargo build -v --bins
+      - name: Test library (palette feature)
+        run: cargo test --no-default-features --lib --features palette_color
+      - name: Doc tests (palette feature)
+        run: cargo test --no-default-features --doc --features palette_color
+      - name: Build docs
+        run: cargo doc --no-deps
+
+  clippy-rustfmt:
+    name: Clippy and rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: clippy, rustfmt
+          override: true
+      - name: clippy
+        run: cargo clippy
+        continue-on-error: true
+      - name: rustfmt
+        run: cargo fmt -- --check
+        continue-on-error: true
