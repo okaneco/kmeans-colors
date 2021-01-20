@@ -9,20 +9,17 @@ use crate::utils::{parse_color, print_colors, save_image, save_image_alpha, save
 use kmeans_colors::{get_kmeans, get_kmeans_hamerly, Calculate, Kmeans, MapColor, Sort};
 
 pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
-    if opt.input.len() == 0 {
+    if opt.input.is_empty() {
         eprintln!("No input files specified.")
     }
 
-    let seed = match opt.seed {
-        Some(s) => s,
-        None => 0,
-    };
+    let seed = opt.seed.unwrap_or(0);
 
     for file in &opt.input {
         if opt.verbose {
             println!("{}", &file.to_string_lossy());
         }
-        let img = image::open(&file)?.to_rgba();
+        let img = image::open(&file)?.to_rgba8();
         let (imgx, imgy) = (img.dimensions().0, img.dimensions().1);
         let img_vec = img.into_raw();
         let converge;
@@ -333,10 +330,7 @@ pub fn find_colors(
         }
     }
 
-    let seed = match seed {
-        Some(s) => s,
-        None => 0,
-    };
+    let seed = seed.unwrap_or(0);
 
     // Default to Lab colors
     if !rgb {
@@ -355,7 +349,7 @@ pub fn find_colors(
                 println!("{}", &file.to_string_lossy());
             }
 
-            let img = image::open(&file)?.to_rgba();
+            let img = image::open(&file)?.to_rgba8();
             let (imgx, imgy) = (img.dimensions().0, img.dimensions().1);
             let img_vec = img.into_raw();
 
@@ -549,18 +543,14 @@ pub fn find_colors(
         // Initialize user centroids
         let mut centroids: Vec<Srgb> = Vec::with_capacity(colors.len());
         for c in colors {
-            centroids.push(
-                (parse_color(c.trim_start_matches('#'))?)
-                    .into_format()
-                    .into(),
-            );
+            centroids.push((parse_color(c.trim_start_matches('#'))?).into_format());
         }
 
         for file in &input {
             if display_filename {
                 println!("{}", &file.to_string_lossy());
             }
-            let img = image::open(&file)?.to_rgba();
+            let img = image::open(&file)?.to_rgba8();
             let (imgx, imgy) = (img.dimensions().0, img.dimensions().1);
             let img_vec = img.into_raw();
 

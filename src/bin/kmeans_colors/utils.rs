@@ -47,25 +47,17 @@ pub fn parse_color(c: &str) -> Result<Srgb<u8>, CliError> {
 /// Prints colors and percentage of their appearance in an image buffer.
 pub fn print_colors<C: Calculate + Copy + Into<Srgb>>(
     show_percentage: bool,
-    colors: &Vec<CentroidData<C>>,
+    colors: &[CentroidData<C>],
 ) -> Result<(), Box<dyn Error>> {
     let mut col = String::new();
     let mut freq = String::new();
     if let Some((last, elements)) = colors.split_last() {
         for elem in elements {
-            write!(
-                &mut col,
-                "{:x},",
-                Srgb::from(elem.centroid.into()).into_format::<u8>()
-            )?;
+            write!(&mut col, "{:x},", elem.centroid.into().into_format::<u8>())?;
             write!(&mut freq, "{:0.4},", elem.percentage)?;
         }
-        write!(
-            &mut col,
-            "{:x}\n",
-            Srgb::from(last.centroid.into()).into_format::<u8>()
-        )?;
-        write!(&mut freq, "{:0.4}\n", last.percentage)?;
+        writeln!(&mut col, "{:x}", last.centroid.into().into_format::<u8>())?;
+        writeln!(&mut freq, "{:0.4}", last.percentage)?;
     }
     print!("{}", col);
     if show_percentage {
@@ -176,8 +168,8 @@ pub fn save_palette<C: Calculate + Copy + Into<Srgb>>(
 
     if !proportional {
         for (x, _, pixel) in imgbuf.enumerate_pixels_mut() {
-            let color = Srgb::from(
-                res.get(
+            let color = res
+                .get(
                     (((x as f32 / w as f32) * len as f32 - 0.5)
                         .max(0.0)
                         .min(len as f32))
@@ -185,17 +177,16 @@ pub fn save_palette<C: Calculate + Copy + Into<Srgb>>(
                 )
                 .unwrap()
                 .centroid
-                .into(),
-            )
-            .into_format()
-            .into_raw();
+                .into()
+                .into_format()
+                .into_raw();
             *pixel = image::Rgb(color);
         }
     } else {
         let mut curr_pos = 0;
         if let Some((last, elements)) = res.split_last() {
             for r in elements.iter() {
-                let pix: [u8; 3] = Srgb::from(r.centroid.into()).into_format().into_raw();
+                let pix: [u8; 3] = r.centroid.into().into_format().into_raw();
                 // Clamp boundary to image width
                 let boundary =
                     ((curr_pos as f32 + (r.percentage * w as f32)).round() as u32).min(w);
@@ -210,7 +201,7 @@ pub fn save_palette<C: Calculate + Copy + Into<Srgb>>(
                 }
                 curr_pos = boundary;
             }
-            let pix: [u8; 3] = Srgb::from(last.centroid.into()).into_format().into_raw();
+            let pix: [u8; 3] = last.centroid.into().into_format().into_raw();
             for y in 0..height {
                 for x in curr_pos..w {
                     imgbuf.put_pixel(x, y, image::Rgb(pix));

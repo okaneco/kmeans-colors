@@ -1,5 +1,5 @@
 # kmeans-colors
-[![Build Status](https://travis-ci.com/okaneco/kmeans-colors.svg?branch=master)](https://travis-ci.com/okaneco/kmeans-colors)
+[![Build Status](https://img.shields.io/github/workflow/status/okaneco/kmeans-colors/Rust%20CI)](https://github.com/okaneco/kmeans-colors)
 [![Crates.io](https://img.shields.io/crates/v/kmeans-colors.svg)](https://crates.io/crates/kmeans-colors)
 [![Docs.rs](https://docs.rs/kmeans_colors/badge.svg)](https://docs.rs/kmeans_colors)
 
