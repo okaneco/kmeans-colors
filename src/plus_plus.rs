@@ -26,7 +26,7 @@ pub fn init_plus_plus<C: crate::Calculate + Clone>(
     let mut weights: Vec<f32> = (0..len).map(|_| 0.0).collect();
 
     // Choose first centroid at random, uniform sampling from input buffer
-    centroids.push(buf.get(rng.gen_range(0, len)).unwrap().to_owned());
+    centroids.push(buf.get(rng.gen_range(0..len)).unwrap().to_owned());
 
     // Pick a new centroid with weighted probability of `D(x)^2 / sum(D(x)^2)`,
     // where `D(x)^2` is the distance to the closest centroid

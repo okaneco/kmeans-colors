@@ -71,9 +71,9 @@ impl<Wp: palette::white_point::WhitePoint> Calculate for Lab<Wp> {
     #[inline]
     fn create_random(rng: &mut impl Rng) -> Lab<Wp> {
         Lab::with_wp(
-            rng.gen_range(0.0, 100.0),
-            rng.gen_range(-128.0, 127.0),
-            rng.gen_range(-128.0, 127.0),
+            rng.gen_range(0.0..=100.0),
+            rng.gen_range(-128.0..=127.0),
+            rng.gen_range(-128.0..=127.0),
         )
     }
 

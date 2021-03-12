@@ -1,6 +1,6 @@
 [package]
 name = "kmeans_colors"
-version = "0.3.4"
+version = "0.4.0"
 authors = ["okaneco <47607823+okaneco@users.noreply.github.com>"]
 edition = "2018"
 exclude = ["test", "gfx", ".github"]
@@ -40,12 +40,12 @@ features = ["std"]
 optional = true
 
 [dependencies.rand]
-version = "0.7"
+version = "0.8"
 default-features = false
 features = ["std"]
 
 [dependencies.rand_chacha]
-version = "0.2"
+version = "0.3"
 default-features = false
 
 [dependencies.structopt]
