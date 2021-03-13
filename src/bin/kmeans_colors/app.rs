@@ -50,7 +50,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             // Iterate over amount of runs keeping best results
             let mut result = Kmeans::new();
             if opt.k > 1 {
-                (0..opt.runs).for_each(|i| {
+                for i in 0..opt.runs {
                     let run_result = get_kmeans_hamerly(
                         opt.k as usize,
                         opt.max_iter,
@@ -62,9 +62,9 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                     if run_result.score < result.score {
                         result = run_result;
                     }
-                });
+                }
             } else {
-                (0..opt.runs).for_each(|i| {
+                for i in 0..opt.runs {
                     let run_result = get_kmeans(
                         opt.k as usize,
                         opt.max_iter,
@@ -76,7 +76,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                     if run_result.score < result.score {
                         result = run_result;
                     }
-                });
+                }
             }
 
             // Print and/or sort results, output to palette
@@ -183,7 +183,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             // Iterate over amount of runs keeping best results
             let mut result = Kmeans::new();
             if opt.k > 1 {
-                (0..opt.runs).for_each(|i| {
+                for i in 0..opt.runs {
                     let run_result = get_kmeans_hamerly(
                         opt.k as usize,
                         opt.max_iter,
@@ -195,9 +195,9 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                     if run_result.score < result.score {
                         result = run_result;
                     }
-                });
+                }
             } else {
-                (0..opt.runs).for_each(|i| {
+                for i in 0..opt.runs {
                     let run_result = get_kmeans(
                         opt.k as usize,
                         opt.max_iter,
@@ -209,7 +209,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                     if run_result.score < result.score {
                         result = run_result;
                     }
-                });
+                }
             }
 
             // Print and/or sort results, output to palette
@@ -436,7 +436,7 @@ pub fn find_colors(
                 let mut result = Kmeans::new();
                 let k = centroids.len();
                 if k > 1 {
-                    (0..runs).for_each(|i| {
+                    for i in 0..runs {
                         let run_result = get_kmeans_hamerly(
                             k,
                             max_iter,
@@ -448,15 +448,15 @@ pub fn find_colors(
                         if run_result.score < result.score {
                             result = run_result;
                         }
-                    });
+                    }
                 } else {
-                    (0..runs).for_each(|i| {
+                    for i in 0..runs {
                         let run_result =
                             get_kmeans(k, max_iter, converge, verbose, &lab, seed + i as u64);
                         if run_result.score < result.score {
                             result = run_result;
                         }
-                    });
+                    }
                 }
 
                 // This is the easiest way to make this work for transparent without a larger restructuring
@@ -637,7 +637,7 @@ pub fn find_colors(
                 let mut result = Kmeans::new();
                 let k = centroids.len();
                 if k > 1 {
-                    (0..runs).for_each(|i| {
+                    for i in 0..runs {
                         let run_result = get_kmeans_hamerly(
                             k,
                             max_iter,
@@ -649,15 +649,15 @@ pub fn find_colors(
                         if run_result.score < result.score {
                             result = run_result;
                         }
-                    });
+                    }
                 } else {
-                    (0..runs).for_each(|i| {
+                    for i in 0..runs {
                         let run_result =
                             get_kmeans(k, max_iter, converge, verbose, &rgb, seed + i as u64);
                         if run_result.score < result.score {
                             result = run_result;
                         }
-                    });
+                    }
                 }
 
                 let cloned_res = result.centroids.clone();

@@ -3,15 +3,17 @@ use crate::sort::{CentroidData, Sort};
 #[cfg(feature = "palette_color")]
 impl<Wp: palette::white_point::WhitePoint> Sort for palette::Lab<Wp> {
     fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self> {
-        let res = data
+        if let Some(res) = data
             .iter()
             .max_by(|a, b| (a.percentage).partial_cmp(&b.percentage).unwrap())
-            .unwrap();
-
-        Some(res.centroid)
+        {
+            Some(res.centroid)
+        } else {
+            None
+        }
     }
 
-    fn sort_indexed_colors(centroids: &Vec<Self>, indices: &[u8]) -> Vec<CentroidData<Self>> {
+    fn sort_indexed_colors(centroids: &[Self], indices: &[u8]) -> Vec<CentroidData<Self>> {
         // Count occurences of each color - "histogram"
         let mut map: std::collections::HashMap<u8, u64> = std::collections::HashMap::new();
         for (i, _) in centroids.iter().enumerate() {
@@ -66,15 +68,17 @@ impl<Wp: palette::white_point::WhitePoint> Sort for palette::Lab<Wp> {
 #[cfg(feature = "palette_color")]
 impl Sort for palette::Srgb {
     fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self> {
-        let res = data
+        if let Some(res) = data
             .iter()
             .max_by(|a, b| (a.percentage).partial_cmp(&b.percentage).unwrap())
-            .unwrap();
-
-        Some(res.centroid)
+        {
+            Some(res.centroid)
+        } else {
+            None
+        }
     }
 
-    fn sort_indexed_colors(centroids: &Vec<Self>, indices: &[u8]) -> Vec<CentroidData<Self>> {
+    fn sort_indexed_colors(centroids: &[Self], indices: &[u8]) -> Vec<CentroidData<Self>> {
         // Count occurences of each color - "histogram"
         let mut map: std::collections::HashMap<u8, u64> = std::collections::HashMap::new();
         for (i, _) in centroids.iter().enumerate() {
