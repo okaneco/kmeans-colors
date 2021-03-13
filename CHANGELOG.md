@@ -1,5 +1,15 @@
 # `kmeans-colors` changelog
 
+## Version 0.4.0 - 2021-03-13
+
+Version bump for updating the `rand` dependency to 0.8. No major API changes.
+
+Minor change to `Sort::sort_indexed_colors` which now takes `&[Self]` instead of
+`&Vec<Self>` in the trait definition.
+
+[#41][41] - Prepare metadata for 0.4.0 release, small fixups  
+[#40][40] - Update crate version to 0.4.0, rand to 0.8, rand_chacha to 0.3
+
 ## Version 0.3.4 - 2020-11-16
 
 An upstream package was changed which prevented the crate from building when
@@ -65,6 +75,8 @@ performance to color and format conversions.
 ## Version 0.1.0 - 2020-04
 * Initial Commit
 
+[41]: https://github.com/okaneco/kmeans-colors/pull/41
+[40]: https://github.com/okaneco/kmeans-colors/pull/40
 [36]: https://github.com/okaneco/kmeans-colors/pull/36
 [32]: https://github.com/okaneco/kmeans-colors/pull/32
 [27]: https://github.com/okaneco/kmeans-colors/pull/27

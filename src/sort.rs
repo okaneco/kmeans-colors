@@ -16,7 +16,7 @@ pub trait Sort: Sized + crate::Calculate {
     fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self>;
 
     /// Sorts centroids by luminosity and calculates the percentage of each
-    /// color in the buffer. Returns a `CentroidResult` sorted from darkest to
-    /// lightest.
-    fn sort_indexed_colors(centroids: &Vec<Self>, indices: &[u8]) -> Vec<CentroidData<Self>>;
+    /// color in the buffer. Returns a Vec of `CentroidData` sorted from darkest
+    /// to lightest.
+    fn sort_indexed_colors(centroids: &[Self], indices: &[u8]) -> Vec<CentroidData<Self>>;
 }

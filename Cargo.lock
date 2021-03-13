@@ -29,15 +29,15 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "bytemuck"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a4bad0c5981acc24bc09e532f35160f952e35422603f0563cd7a73c2c2e65a0"
+checksum = "bed57e2090563b83ba8f83366628ce535a7584c9afa4c9fc0612a03925c6df58"
 
 [[package]]
 name = "byteorder"
-version = "1.4.2"
+version = "1.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae44d1a3d5a19df61dd0c8beb138458ac2a53a7ac09eba97d55592540004306b"
+checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "cfg-if"
@@ -103,9 +103,9 @@ dependencies = [
 
 [[package]]
 name = "image"
-version = "0.23.12"
+version = "0.23.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ce04077ead78e39ae8610ad26216aed811996b043d47beed5090db674f9e9b5"
+checksum = "24ffcb7e7244a9bf19d35bf2883b9c080c4ced3c07a9895572178cdb8f13f6a1"
 dependencies = [
  "bytemuck",
  "byteorder",
@@ -119,12 +119,9 @@ dependencies = [
 
 [[package]]
 name = "jpeg-decoder"
-version = "0.1.20"
+version = "0.1.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc797adac5f083b8ff0ca6f6294a999393d76e197c36488e2ef732c4715f6fa3"
-dependencies = [
- "byteorder",
-]
+checksum = "229d53d58899083193af11e15917b5640cd40b29ff475a1fe4ef725deb02d0f2"
 
 [[package]]
 name = "kmeans_colors"
@@ -145,9 +142,9 @@ checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "libc"
-version = "0.2.82"
+version = "0.2.88"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89203f3fba0a3795506acaad8ebce3c80c0af93f994d5a1d7a0b1eeb23271929"
+checksum = "03b07a082330a35e43f63177cc01689da34fbffa0105e1246cf0311472cac73a"
 
 [[package]]
 name = "miniz_oxide"
@@ -274,9 +271,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.8"
+version = "1.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "991431c3519a3f36861882da93630ce66b52918dcf1b8e2fd66b397fc96f28df"
+checksum = "c3d0b9745dc2debf507c8422de05d7226cc1f0644216dfdfead988f9b1ab32a7"
 dependencies = [
  "proc-macro2",
 ]
@@ -337,9 +334,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "1.0.58"
+version = "1.0.63"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc60a3d73ea6594cd712d830cc1f0390fd71542d8c8cd24e70cc54cdfd5e05d5"
+checksum = "8fd9bc7ccc2688b3344c2f48b9b546648b25ce0b20fc717ee7fa7981a8ca9717"
 dependencies = [
  "proc-macro2",
  "quote",

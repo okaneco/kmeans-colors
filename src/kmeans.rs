@@ -177,6 +177,12 @@ pub struct HamerlyPoint {
 impl HamerlyPoint {
     /// Create a new `HamerlyPoint`.
     pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for HamerlyPoint {
+    fn default() -> Self {
         HamerlyPoint {
             index: 0,
             upper_bound: f32::MAX,

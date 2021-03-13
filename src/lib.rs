@@ -75,7 +75,7 @@
 //!
 //! // Iterate over the runs, keep the best results
 //! let mut result = Kmeans::new();
-//! (0..runs).for_each(|i| {
+//! for i in 0..runs {
 //!     let run_result = get_kmeans(
 //!         k,
 //!         max_iter,
@@ -87,7 +87,7 @@
 //!     if run_result.score < result.score {
 //!         result = run_result;
 //!     }
-//! });
+//! }
 //!
 //! // Convert indexed colors back to Srgb<u8> for output
 //! let rgb = &result.centroids
@@ -135,7 +135,7 @@
 //! #    .map(|x| x.into_format().into())
 //! #    .collect();
 //! # let mut result = Kmeans::new();
-//! # (0..runs).for_each(|i| {
+//! # for i in 0..runs {
 //! #     let run_result = get_kmeans(
 //! #         k,
 //! #         max_iter,
@@ -147,7 +147,7 @@
 //! #     if run_result.score < result.score {
 //! #         result = run_result;
 //! #     }
-//! # });
+//! # }
 //! // Using the results from the previous example, process the centroid data
 //! let mut res = Lab::sort_indexed_colors(&result.centroids, &result.indices);
 //!

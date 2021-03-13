@@ -30,7 +30,7 @@ pub fn init_plus_plus<C: crate::Calculate + Clone>(
 
     // Pick a new centroid with weighted probability of `D(x)^2 / sum(D(x)^2)`,
     // where `D(x)^2` is the distance to the closest centroid
-    (1..k).for_each(|_| {
+    for _ in 1..k {
         // Calculate the distances to nearest centers, accumulate a sum
         let mut sum = 0.0;
         for (b, dist) in buf.iter().zip(weights.iter_mut()) {
@@ -57,5 +57,5 @@ pub fn init_plus_plus<C: crate::Calculate + Clone>(
         // Choose next centroid based on weights
         let sampler = WeightedIndex::new(&weights).unwrap();
         centroids.push(buf.get(sampler.sample(&mut rng)).unwrap().to_owned());
-    });
+    }
 }
