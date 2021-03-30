@@ -74,7 +74,7 @@ jobs:
         run: |
           cd target/${{ matrix.platform.target }}/release
           ####### reduce binary size by removing debug symbols #######
-          BINARY_NAME=kmeans-colors${{ matrix.platform.binary-postfix }}
+          BINARY_NAME=kmeans_colors${{ matrix.platform.binary-postfix }}
           if [[ ${{ matrix.platform.target }} == aarch64-unknown-linux-gnu ]]; then
             GCC_PREFIX="aarch64-linux-gnu-"
           else
@@ -86,7 +86,7 @@ jobs:
           fi
 
           ########## create tar.gz ##########
-          RELEASE_NAME=kmeans-colors-${GITHUB_REF/refs\/tags\//}-${{ matrix.platform.os-name }}-${{ matrix.platform.architecture }}
+          RELEASE_NAME=kmeans_colors-${GITHUB_REF/refs\/tags\//}-${{ matrix.platform.os-name }}-${{ matrix.platform.architecture }}
           tar czvf $RELEASE_NAME.tar.gz $BINARY_NAME
           ########## create sha256 ##########
           if [[ ${{ runner.os }} == 'Windows' ]]; then
@@ -99,7 +99,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            target/${{ matrix.platform.target }}/release/kmeans-colors-*.tar.gz
-            target/${{ matrix.platform.target }}/release/kmeans-colors-*.sha256
+            target/${{ matrix.platform.target }}/release/kmeans_colors-*.tar.gz
+            target/${{ matrix.platform.target }}/release/kmeans_colors-*.sha256
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
