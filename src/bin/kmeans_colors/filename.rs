@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::err::CliError;
@@ -10,7 +10,7 @@ pub fn create_filename(
     output: &Option<PathBuf>,
     extension: &str,
     k: Option<u8>,
-    file: &PathBuf,
+    file: &Path,
 ) -> Result<PathBuf, CliError> {
     let title;
     if input.len() == 1 {
@@ -69,7 +69,7 @@ pub fn create_filename_palette(
     output: &Option<PathBuf>,
     rgb: bool,
     k: Option<u8>,
-    file: &PathBuf,
+    file: &Path,
 ) -> Result<PathBuf, CliError> {
     let title;
     let extension = "png";
@@ -124,7 +124,7 @@ pub fn create_filename_palette(
 }
 
 /// Appends a timestamp to an input filename to be used as output filename.
-fn generate_filename(path: &PathBuf, k: Option<u8>) -> Result<String, CliError> {
+fn generate_filename(path: &Path, k: Option<u8>) -> Result<String, CliError> {
     let filename = path.file_stem().unwrap().to_str().unwrap().to_string();
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?;
     let secs = now.as_secs();
@@ -136,7 +136,7 @@ fn generate_filename(path: &PathBuf, k: Option<u8>) -> Result<String, CliError> 
 }
 
 /// Appends a timestamp to an input filename to be used as a palette filename.
-fn generate_filename_palette(path: &PathBuf, k: u8, rgb: bool) -> Result<String, CliError> {
+fn generate_filename_palette(path: &Path, k: u8, rgb: bool) -> Result<String, CliError> {
     let filename = path.file_stem().unwrap().to_str().unwrap().to_string();
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?;
     let secs = now.as_secs();

@@ -16,11 +16,12 @@ are binarization and "color style" transfer.
 ![Animation of flowers](gfx/pink.gif)
 
 To use as a library, add the following to your `Cargo.toml`; add the
-`palette_color` feature to enable `palette` color types.
+`palette_color` feature to enable `palette` color types. Executable builds can
+be found at https://github.com/okaneco/kmeans-colors/releases.
 
 ```toml
 [dependencies.kmeans_colors]
-version = "0.3"
+version = "0.4"
 default-features = false
 ```
 
