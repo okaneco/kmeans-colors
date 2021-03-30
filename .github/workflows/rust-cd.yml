@@ -1,0 +1,105 @@
+name: Rust CD
+
+on:
+  push:
+    tags:
+      - "*.*.*"
+
+jobs:
+  publish-binary:
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      matrix:
+        rust: [ stable ]
+        platform:
+          - os: macos-latest
+            os-name: macos
+            target: x86_64-apple-darwin
+            architecture: x86_64
+            binary-postfix: ""
+            use-cross: false
+          - os: ubuntu-latest
+            os-name: linux
+            target: x86_64-unknown-linux-gnu
+            architecture: x86_64
+            binary-postfix: ""
+            use-cross: false
+          - os: windows-latest
+            os-name: windows
+            target: x86_64-pc-windows-msvc
+            architecture: x86_64
+            binary-postfix: ".exe"
+            use-cross: false
+          - os: ubuntu-latest
+            os-name: linux
+            target: aarch64-unknown-linux-gnu
+            architecture: arm64
+            binary-postfix: ""
+            use-cross: true
+          - os: ubuntu-latest
+            os-name: linux
+            target: i686-unknown-linux-gnu
+            architecture: i686
+            binary-postfix: ""
+            use-cross: true
+
+    steps:
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          profile: minimal
+          override: true
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          use-cross: ${{ matrix.platform.use-cross }}
+          toolchain: ${{ matrix.rust }}
+          args: --release --target ${{ matrix.platform.target }}
+
+      - name: Install strip command
+        if: ${{ matrix.platform.target == 'aarch64-unknown-linux-gnu' }}
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt-get install -y binutils-aarch64-linux-gnu
+
+      - name: Package final binary
+        shell: bash
+        run: |
+          cd target/${{ matrix.platform.target }}/release
+          ####### reduce binary size by removing debug symbols #######
+          BINARY_NAME=kmeans-colors${{ matrix.platform.binary-postfix }}
+          if [[ ${{ matrix.platform.target }} == aarch64-unknown-linux-gnu ]]; then
+            GCC_PREFIX="aarch64-linux-gnu-"
+          else
+            GCC_PREFIX=""
+          fi
+
+          if [[ ${{ matrix.platform.target }} != x86_64-pc-windows-msvc ]]; then
+            "$GCC_PREFIX"strip $BINARY_NAME
+          fi
+
+          ########## create tar.gz ##########
+          RELEASE_NAME=kmeans-colors-${GITHUB_REF/refs\/tags\//}-${{ matrix.platform.os-name }}-${{ matrix.platform.architecture }}
+          tar czvf $RELEASE_NAME.tar.gz $BINARY_NAME
+          ########## create sha256 ##########
+          if [[ ${{ runner.os }} == 'Windows' ]]; then
+            certutil -hashfile $RELEASE_NAME.tar.gz sha256 | grep -E [A-Fa-f0-9]{64} > $RELEASE_NAME.sha256
+          else
+            shasum -a 256 $RELEASE_NAME.tar.gz > $RELEASE_NAME.sha256
+          fi
+
+      - name: Releasing assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/${{ matrix.platform.target }}/release/kmeans-colors-*.tar.gz
+            target/${{ matrix.platform.target }}/release/kmeans-colors-*.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

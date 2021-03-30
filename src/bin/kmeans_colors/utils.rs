@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::Write;
 use std::fs::File;
 use std::io::BufWriter;
-use std::path::PathBuf;
+use std::path::Path;
 
 use palette::{Pixel, Srgb};
 
@@ -68,12 +68,7 @@ pub fn print_colors<C: Calculate + Copy + Into<Srgb>>(
 }
 
 /// Saves image buffer to file.
-pub fn save_image(
-    imgbuf: &[u8],
-    imgx: u32,
-    imgy: u32,
-    title: &PathBuf,
-) -> Result<(), Box<dyn Error>> {
+pub fn save_image(imgbuf: &[u8], imgx: u32, imgy: u32, title: &Path) -> Result<(), Box<dyn Error>> {
     let mut w = BufWriter::new(File::create(title)?);
     if title.extension().unwrap() == "png" {
         let encoder = image::png::PngEncoder::new_with_quality(
@@ -110,7 +105,7 @@ pub fn save_image_alpha(
     imgbuf: &[u8],
     imgx: u32,
     imgy: u32,
-    title: &PathBuf,
+    title: &Path,
 ) -> Result<(), Box<dyn Error>> {
     let mut w = BufWriter::new(File::create(title)?);
     if title.extension().unwrap() == "png" {
@@ -149,7 +144,7 @@ pub fn save_palette<C: Calculate + Copy + Into<Srgb>>(
     proportional: bool,
     height: u32,
     width: Option<u32>,
-    title: &PathBuf,
+    title: &Path,
 ) -> Result<(), Box<dyn Error>> {
     let len = res.len() as u32;
     let w = match width {
@@ -197,7 +192,7 @@ pub fn save_palette<C: Calculate + Copy + Into<Srgb>>(
                 }
                 // If boundary has been clamped, return early
                 if boundary == w {
-                    return Ok(save_image(&imgbuf.to_vec(), w, height, title)?);
+                    return save_image(&imgbuf.to_vec(), w, height, title);
                 }
                 curr_pos = boundary;
             }
@@ -210,5 +205,5 @@ pub fn save_palette<C: Calculate + Copy + Into<Srgb>>(
         }
     }
 
-    Ok(save_image(&imgbuf.to_vec(), w, height, title)?)
+    save_image(&imgbuf.to_vec(), w, height, title)
 }
