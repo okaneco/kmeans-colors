@@ -26,7 +26,7 @@ pub fn create_filename(
                 title = temp;
             }
             None => {
-                let mut temp = PathBuf::from(generate_filename(&file, k)?);
+                let mut temp = PathBuf::from(generate_filename(file, k)?);
                 temp.set_extension(extension);
                 title = temp;
             }
@@ -53,7 +53,7 @@ pub fn create_filename(
                 title = temp.with_extension(ext);
             }
             None => {
-                let mut temp = PathBuf::from(generate_filename(&file, k)?);
+                let mut temp = PathBuf::from(generate_filename(file, k)?);
                 temp.set_extension(extension);
                 title = temp;
             }
@@ -86,7 +86,7 @@ pub fn create_filename_palette(
                 title = temp;
             }
             None => {
-                let mut temp = PathBuf::from(generate_filename_palette(&file, k.unwrap(), rgb)?);
+                let mut temp = PathBuf::from(generate_filename_palette(file, k.unwrap(), rgb)?);
                 temp.set_extension(extension);
                 title = temp;
             }
@@ -113,7 +113,7 @@ pub fn create_filename_palette(
                 title = temp.with_extension(ext);
             }
             None => {
-                let mut temp = PathBuf::from(generate_filename_palette(&file, k.unwrap(), rgb)?);
+                let mut temp = PathBuf::from(generate_filename_palette(file, k.unwrap(), rgb)?);
                 temp.set_extension(extension);
                 title = temp;
             }

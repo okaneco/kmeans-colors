@@ -55,7 +55,7 @@
 //! example converts an array of `u8` into `Lab` colors then finds the k-means.
 //!
 //! ```
-//! use palette::{Lab, Pixel, Srgb};
+//! use palette::{FromColor, IntoColor, Lab, Pixel, Srgb};
 //! use kmeans_colors::{get_kmeans, Calculate, Kmeans, MapColor, Sort};
 //!
 //! // An image buffer of one black pixel and one white pixel
@@ -70,7 +70,7 @@
 //! // Convert RGB [u8] buffer to Lab for k-means
 //! let lab: Vec<Lab> = Srgb::from_raw_slice(&img_vec)
 //!     .iter()
-//!     .map(|x| x.into_format().into())
+//!     .map(|x| x.into_format().into_color())
 //!     .collect();
 //!
 //! // Iterate over the runs, keep the best results
@@ -92,7 +92,7 @@
 //! // Convert indexed colors back to Srgb<u8> for output
 //! let rgb = &result.centroids
 //!     .iter()
-//!     .map(|x| Srgb::from(*x).into_format())
+//!     .map(|x| Srgb::from_color(*x).into_format())
 //!     .collect::<Vec<Srgb<u8>>>();
 //! let buffer = Srgb::map_indices_to_centroids(&rgb, &result.indices);
 //! # assert_eq!(Srgb::into_raw_slice(&buffer), [119, 119, 119, 119, 119, 119]);
@@ -119,7 +119,7 @@
 //!
 //! [sort]: trait.Sort.html#tymethod.sort_indexed_colors
 //! ```no_run
-//! # use palette::{Lab, Pixel, Srgb};
+//! # use palette::{FromColor, IntoColor, Lab, Pixel, Srgb};
 //! # use kmeans_colors::{get_kmeans, Kmeans};
 //! use kmeans_colors::Sort;
 //!
@@ -132,7 +132,7 @@
 //! # let seed = 0;
 //! # let lab: Vec<Lab> = Srgb::from_raw_slice(&img_vec)
 //! #    .iter()
-//! #    .map(|x| x.into_format().into())
+//! #    .map(|x| x.into_format().into_color())
 //! #    .collect();
 //! # let mut result = Kmeans::new();
 //! # for i in 0..runs {
@@ -154,7 +154,7 @@
 //! // We can find the dominant color directly
 //! let dominant_color = Lab::get_dominant_color(&res);
 //! # assert_eq!(
-//! #    Srgb::from(dominant_color.unwrap()).into_format::<u8>(),
+//! #    Srgb::from_color(dominant_color.unwrap()).into_format::<u8>(),
 //! #    Srgb::new(119u8, 119, 119)
 //! # );
 //!
