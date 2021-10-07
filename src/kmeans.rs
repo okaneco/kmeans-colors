@@ -82,8 +82,8 @@ pub fn get_kmeans<C: Calculate + Clone>(
 
     // Main loop: find nearest centroids and recalculate means until convergence
     loop {
-        C::get_closest_centroid(&buf, &centroids, &mut indices);
-        C::recalculate_centroids(&mut rng, &buf, &mut centroids, &indices);
+        C::get_closest_centroid(buf, &centroids, &mut indices);
+        C::recalculate_centroids(&mut rng, buf, &mut centroids, &indices);
 
         score = C::check_loop(&centroids, &old_centroids);
         if verbose {
@@ -238,8 +238,8 @@ pub fn get_kmeans_hamerly<C: Hamerly + Clone>(
     // Main loop: find nearest centroids and recalculate means until convergence
     loop {
         C::compute_half_distances(&mut centers);
-        C::get_closest_centroid_hamerly(&buf, &centers, &mut points);
-        C::recalculate_centroids_hamerly(&mut rng, &buf, &mut centers, &points);
+        C::get_closest_centroid_hamerly(buf, &centers, &mut points);
+        C::recalculate_centroids_hamerly(&mut rng, buf, &mut centers, &points);
 
         score = Calculate::check_loop(&centers.centroids, &old_centers);
         if verbose {

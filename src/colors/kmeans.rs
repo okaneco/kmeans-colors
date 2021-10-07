@@ -178,7 +178,7 @@ impl<Wp: palette::white_point::WhitePoint> Hamerly for Lab<Wp> {
                 if i == j {
                     continue;
                 }
-                diff = Self::difference(&ci, &cj);
+                diff = Self::difference(ci, cj);
                 if diff < min {
                     min = diff;
                 }
@@ -314,7 +314,7 @@ impl Hamerly for Srgb {
                 if i == j {
                     continue;
                 }
-                diff = Self::difference(&ci, &cj);
+                diff = Self::difference(ci, cj);
                 if diff < min {
                     min = diff;
                 }

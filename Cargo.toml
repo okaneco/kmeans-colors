@@ -34,7 +34,7 @@ features = ["jpeg", "png"]
 optional = true
 
 [dependencies.palette]
-version = "0.5"
+version = "0.6"
 default-features = false
 features = ["std"]
 optional = true
