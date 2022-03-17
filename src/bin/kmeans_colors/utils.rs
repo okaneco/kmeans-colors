@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
 
+use image::ImageEncoder;
 use palette::{IntoColor, Pixel, Srgb};
 
 use crate::err::CliError;
@@ -76,17 +77,25 @@ pub fn print_colors<C: Calculate + Copy + IntoColor<Srgb>>(
 }
 
 /// Saves image buffer to file.
-pub fn save_image(imgbuf: &[u8], imgx: u32, imgy: u32, title: &Path) -> Result<(), Box<dyn Error>> {
+pub fn save_image(
+    imgbuf: &[u8],
+    imgx: u32,
+    imgy: u32,
+    title: &Path,
+    palette: bool,
+) -> Result<(), Box<dyn Error>> {
     let mut w = BufWriter::new(File::create(title)?);
     if title.extension().unwrap() == "png" {
-        let encoder = image::png::PngEncoder::new_with_quality(
+        // If file is a palette, use Adaptive filtering to save more space
+        use image::codecs::png::FilterType::{Adaptive, NoFilter};
+        let encoder = image::codecs::png::PngEncoder::new_with_quality(
             w,
             image::codecs::png::CompressionType::Best,
-            image::codecs::png::FilterType::NoFilter,
+            if palette { Adaptive } else { NoFilter },
         );
 
         // Clean up if file is created but there's a problem writing to it
-        match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgb8) {
+        match encoder.write_image(imgbuf, imgx, imgy, image::ColorType::Rgb8) {
             Ok(_) => {}
             Err(err) => {
                 eprintln!("Error: {}.", err);
@@ -94,7 +103,7 @@ pub fn save_image(imgbuf: &[u8], imgx: u32, imgy: u32, title: &Path) -> Result<(
             }
         }
     } else {
-        let mut encoder = image::jpeg::JpegEncoder::new_with_quality(&mut w, 90);
+        let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut w, 90);
 
         match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgb8) {
             Ok(_) => {}
@@ -117,14 +126,14 @@ pub fn save_image_alpha(
 ) -> Result<(), Box<dyn Error>> {
     let mut w = BufWriter::new(File::create(title)?);
     if title.extension().unwrap() == "png" {
-        let encoder = image::png::PngEncoder::new_with_quality(
+        let encoder = image::codecs::png::PngEncoder::new_with_quality(
             w,
             image::codecs::png::CompressionType::Best,
             image::codecs::png::FilterType::NoFilter,
         );
 
         // Clean up if file is created but there's a problem writing to it
-        match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgba8) {
+        match encoder.write_image(imgbuf, imgx, imgy, image::ColorType::Rgba8) {
             Ok(_) => {}
             Err(err) => {
                 eprintln!("Error: {}.", err);
@@ -132,7 +141,7 @@ pub fn save_image_alpha(
             }
         }
     } else {
-        let mut encoder = image::jpeg::JpegEncoder::new_with_quality(&mut w, 90);
+        let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut w, 90);
 
         match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgba8) {
             Ok(_) => {}
@@ -200,7 +209,7 @@ pub fn save_palette<C: Calculate + Copy + IntoColor<Srgb>>(
                 }
                 // If boundary has been clamped, return early
                 if boundary == w {
-                    return save_image(&imgbuf.to_vec(), w, height, title);
+                    return save_image(imgbuf.as_raw(), w, height, title, true);
                 }
                 curr_pos = boundary;
             }
@@ -213,5 +222,5 @@ pub fn save_palette<C: Calculate + Copy + IntoColor<Srgb>>(
         }
     }
 
-    save_image(&imgbuf.to_vec(), w, height, title)
+    save_image(imgbuf.as_raw(), w, height, title, true)
 }

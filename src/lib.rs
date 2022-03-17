@@ -61,7 +61,7 @@
 //! // An image buffer of one black pixel and one white pixel
 //! let img_vec = [0u8, 0, 0, 255, 255, 255];
 //!
-//! # let runs = 3;
+//! # let runs = 1;
 //! # let k = 1;
 //! # let max_iter = 20;
 //! # let converge = 8.0;
@@ -96,6 +96,28 @@
 //!     .collect::<Vec<Srgb<u8>>>();
 //! let buffer = Srgb::map_indices_to_centroids(&rgb, &result.indices);
 //! # assert_eq!(Srgb::into_raw_slice(&buffer), [119, 119, 119, 119, 119, 119]);
+//! # // Test get_kmeans_hamerly
+//! # let mut result = Kmeans::new();
+//! # for i in 0..runs {
+//! #     let run_result = kmeans_colors::get_kmeans_hamerly(
+//! #         k,
+//! #         max_iter,
+//! #         converge,
+//! #         verbose,
+//! #         &lab,
+//! #         seed + i as u64,
+//! #     );
+//! #     if run_result.score < result.score {
+//! #         result = run_result;
+//! #     }
+//! # }
+//! # // Convert indexed colors back to Srgb<u8> for output
+//! # let rgb = &result.centroids
+//! #     .iter()
+//! #     .map(|x| Srgb::from_color(*x).into_format())
+//! #     .collect::<Vec<Srgb<u8>>>();
+//! # let buffer = Srgb::map_indices_to_centroids(&rgb, &result.indices);
+//! # assert_eq!(Srgb::into_raw_slice(&buffer), [119, 119, 119, 119, 119, 119]);
 //! ```
 //!
 //! k-means++ is used for centroid initialization. Because the initialization is
@@ -118,13 +140,13 @@
 //! lightest and returns an array of [`CentroidData`](struct.CentroidData.html).
 //!
 //! [sort]: trait.Sort.html#tymethod.sort_indexed_colors
-//! ```no_run
+//! ```
 //! # use palette::{FromColor, IntoColor, Lab, Pixel, Srgb};
 //! # use kmeans_colors::{get_kmeans, Kmeans};
 //! use kmeans_colors::Sort;
 //!
 //! # let img_vec = [0u8, 0, 0, 255, 255, 255];
-//! # let runs = 3;
+//! # let runs = 1;
 //! # let k = 1;
 //! # let max_iter = 20;
 //! # let converge = 8.0;

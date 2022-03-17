@@ -21,31 +21,24 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
         }
         let img = image::open(&file)?.into_rgba8();
         let (imgx, imgy) = (img.dimensions().0, img.dimensions().1);
-        let img_vec = img.into_raw();
-        let converge;
-        match opt.factor {
-            Some(x) => converge = x,
-            None => {
-                converge = if !opt.rgb { 5.0 } else { 0.0025 };
-            }
-        }
+        let img_vec = img.as_raw();
+        let converge = opt.factor.unwrap_or(if !opt.rgb { 5.0 } else { 0.0025 });
 
         // Defaults to Lab, first case.
         if !opt.rgb {
             // Convert Srgb image buffer to Lab for kmeans
-            let lab: Vec<Lab>;
-            if !opt.transparent {
-                lab = Srgba::from_raw_slice(&img_vec)
+            let lab: Vec<Lab> = if !opt.transparent {
+                Srgba::from_raw_slice(img_vec)
                     .iter()
                     .map(|x| x.into_format::<_, f32>().into_color())
-                    .collect();
+                    .collect()
             } else {
-                lab = Srgba::from_raw_slice(&img_vec)
+                Srgba::from_raw_slice(img_vec)
                     .iter()
                     .filter(|x| x.alpha == 255)
                     .map(|x| x.into_format::<_, f32>().into_color())
-                    .collect();
-            }
+                    .collect()
+            };
 
             // Iterate over amount of runs keeping best results
             let mut result = Kmeans::new();
@@ -127,13 +120,14 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                     imgx,
                     imgy,
                     &create_filename(&opt.input, &opt.output, &opt.extension, Some(opt.k), file)?,
+                    false,
                 )?;
             } else {
                 // For transparent images, we get_closest_centroid based
                 // on the centroids we calculated and only paint in the pixels
                 // that have a full alpha
                 let mut indices = Vec::with_capacity(img_vec.len());
-                let lab: Vec<Lab> = Srgba::from_raw_slice(&img_vec)
+                let lab: Vec<Lab> = Srgba::from_raw_slice(img_vec)
                     .iter()
                     .map(|x| x.into_format::<_, f32>().into_color())
                     .collect();
@@ -145,7 +139,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                     .map(|x| Srgba::from_color(*x).into_format())
                     .collect::<Vec<Srgba<u8>>>();
 
-                let data = Srgba::from_raw_slice(&img_vec);
+                let data = Srgba::from_raw_slice(img_vec);
                 let lab: Vec<Srgba<u8>> = Srgba::map_indices_to_centroids(centroids, &indices)
                     .iter()
                     .zip(data)
@@ -166,19 +160,18 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             }
         } else {
             // Read image buffer into Srgb format
-            let rgb: Vec<Srgb>;
-            if !opt.transparent {
-                rgb = Srgba::from_raw_slice(&img_vec)
+            let rgb: Vec<Srgb> = if !opt.transparent {
+                Srgba::from_raw_slice(img_vec)
                     .iter()
                     .map(|x| x.into_format::<_, f32>().into_color())
-                    .collect();
+                    .collect()
             } else {
-                rgb = Srgba::from_raw_slice(&img_vec)
+                Srgba::from_raw_slice(img_vec)
                     .iter()
                     .filter(|x| x.alpha == 255)
                     .map(|x| x.into_format::<_, f32>().into_color())
-                    .collect();
-            }
+                    .collect()
+            };
 
             // Iterate over amount of runs keeping best results
             let mut result = Kmeans::new();
@@ -260,13 +253,14 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                     imgx,
                     imgy,
                     &create_filename(&opt.input, &opt.output, &opt.extension, Some(opt.k), file)?,
+                    false,
                 )?;
             } else {
                 // For transparent images, we get_closest_centroid based
                 // on the centroids we calculated and only paint in the pixels
                 // that have a full alpha
                 let mut indices = Vec::with_capacity(img_vec.len());
-                let rgb: Vec<Srgb> = Srgba::from_raw_slice(&img_vec)
+                let rgb: Vec<Srgb> = Srgba::from_raw_slice(img_vec)
                     .iter()
                     .map(|x| x.into_format::<_, f32>().into_color())
                     .collect();
@@ -278,7 +272,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                     .map(|x| x.into_format().into())
                     .collect::<Vec<Srgba<u8>>>();
 
-                let data = Srgba::from_raw_slice(&img_vec);
+                let data = Srgba::from_raw_slice(img_vec);
                 let rgb: Vec<Srgba<u8>> = Srgba::map_indices_to_centroids(centroids, &indices)
                     .iter()
                     .zip(data)
@@ -321,14 +315,7 @@ pub fn find_colors(
 ) -> Result<(), Box<dyn Error>> {
     // Print filename if multiple files and percentage is set
     let display_filename = (input.len() > 1) && (percentage);
-    let converge;
-
-    match factor {
-        Some(x) => converge = x,
-        None => {
-            converge = if !rgb { 5.0 } else { 0.0025 };
-        }
-    }
+    let converge = factor.unwrap_or(if !rgb { 5.0 } else { 0.0025 });
 
     let seed = seed.unwrap_or(0);
 
@@ -351,21 +338,20 @@ pub fn find_colors(
 
             let img = image::open(&file)?.into_rgba8();
             let (imgx, imgy) = (img.dimensions().0, img.dimensions().1);
-            let img_vec = img.into_raw();
+            let img_vec = img.as_raw();
 
-            let lab: Vec<Lab>;
-            if !transparent {
-                lab = Srgba::from_raw_slice(&img_vec)
+            let lab: Vec<Lab> = if !transparent {
+                Srgba::from_raw_slice(img_vec)
                     .iter()
                     .map(|x| x.into_format::<_, f32>().into_color())
-                    .collect();
+                    .collect()
             } else {
-                lab = Srgba::from_raw_slice(&img_vec)
+                Srgba::from_raw_slice(img_vec)
                     .iter()
                     .filter(|x| x.alpha == 255)
                     .map(|x| x.into_format::<_, f32>().into_color())
-                    .collect();
-            }
+                    .collect()
+            };
 
             if !replace {
                 let mut indices = Vec::with_capacity(img_vec.len());
@@ -392,6 +378,7 @@ pub fn find_colors(
                         imgx,
                         imgy,
                         &create_filename(&input, &output, "png", None, file)?,
+                        false,
                     )?;
                 } else {
                     let rgb_centroids = &centroids
@@ -400,7 +387,7 @@ pub fn find_colors(
                         .collect::<Vec<Srgb>>();
 
                     let mut indices = Vec::with_capacity(img_vec.len());
-                    let rgb: Vec<Srgb> = Srgba::from_raw_slice(&img_vec)
+                    let rgb: Vec<Srgb> = Srgba::from_raw_slice(img_vec)
                         .iter()
                         .map(|x| x.into_format::<_, f32>().into_color())
                         .collect();
@@ -411,7 +398,7 @@ pub fn find_colors(
                         .map(|x| Srgba::from(*x).into_format())
                         .collect::<Vec<Srgba<u8>>>();
 
-                    let data = Srgba::from_raw_slice(&img_vec);
+                    let data = Srgba::from_raw_slice(img_vec);
                     let lab: Vec<Srgba<u8>> = Srgba::map_indices_to_centroids(centroids, &indices)
                         .iter()
                         .zip(data)
@@ -492,6 +479,7 @@ pub fn find_colors(
                         imgx,
                         imgy,
                         &create_filename(&input, &output, "png", None, file)?,
+                        false,
                     )?;
                 } else {
                     let rgb_centroids = &sorted
@@ -500,7 +488,7 @@ pub fn find_colors(
                         .collect::<Vec<Srgb>>();
 
                     let mut indices = Vec::with_capacity(img_vec.len());
-                    let rgb: Vec<Srgb> = Srgba::from_raw_slice(&img_vec)
+                    let rgb: Vec<Srgb> = Srgba::from_raw_slice(img_vec)
                         .iter()
                         .map(|x| x.into_format::<_, f32>().into_color())
                         .collect();
@@ -515,7 +503,7 @@ pub fn find_colors(
                         .map(|x| Srgba::from(*x).into_format())
                         .collect::<Vec<Srgba<u8>>>();
 
-                    let data = Srgba::from_raw_slice(&img_vec);
+                    let data = Srgba::from_raw_slice(img_vec);
                     let lab: Vec<Srgba<u8>> = Srgba::map_indices_to_centroids(centroids, &indices)
                         .iter()
                         .zip(data)
@@ -552,21 +540,20 @@ pub fn find_colors(
             }
             let img = image::open(&file)?.into_rgba8();
             let (imgx, imgy) = (img.dimensions().0, img.dimensions().1);
-            let img_vec = img.into_raw();
+            let img_vec = img.as_raw();
 
-            let rgb: Vec<Srgb>;
-            if !transparent {
-                rgb = Srgba::from_raw_slice(&img_vec)
+            let rgb: Vec<Srgb> = if !transparent {
+                Srgba::from_raw_slice(img_vec)
                     .iter()
                     .map(|x| x.into_format::<_, f32>().into_color())
-                    .collect();
+                    .collect()
             } else {
-                rgb = Srgba::from_raw_slice(&img_vec)
+                Srgba::from_raw_slice(img_vec)
                     .iter()
                     .filter(|x| x.alpha == 255)
                     .map(|x| x.into_format::<_, f32>().into_color())
-                    .collect();
-            }
+                    .collect()
+            };
 
             if !replace {
                 let mut indices = Vec::with_capacity(img_vec.len());
@@ -593,6 +580,7 @@ pub fn find_colors(
                         imgx,
                         imgy,
                         &create_filename(&input, &output, "png", None, file)?,
+                        false,
                     )?;
                 } else {
                     let rgb_centroids = &centroids
@@ -601,7 +589,7 @@ pub fn find_colors(
                         .collect::<Vec<Srgb>>();
 
                     let mut indices = Vec::with_capacity(img_vec.len());
-                    let rgb: Vec<Srgb> = Srgba::from_raw_slice(&img_vec)
+                    let rgb: Vec<Srgb> = Srgba::from_raw_slice(img_vec)
                         .iter()
                         .map(|x| x.into_format::<_, f32>().into_color())
                         .collect();
@@ -612,7 +600,7 @@ pub fn find_colors(
                         .map(|x| Srgba::from(*x).into_format())
                         .collect::<Vec<Srgba<u8>>>();
 
-                    let data = Srgba::from_raw_slice(&img_vec);
+                    let data = Srgba::from_raw_slice(img_vec);
                     let rgb: Vec<Srgba<u8>> = Srgba::map_indices_to_centroids(centroids, &indices)
                         .iter()
                         .zip(data)
@@ -693,6 +681,7 @@ pub fn find_colors(
                         imgx,
                         imgy,
                         &create_filename(&input, &output, "png", None, file)?,
+                        false,
                     )?;
                 } else {
                     let rgb_centroids = &sorted
@@ -701,7 +690,7 @@ pub fn find_colors(
                         .collect::<Vec<Srgb>>();
 
                     let mut indices = Vec::with_capacity(img_vec.len());
-                    let rgb: Vec<Srgb> = Srgba::from_raw_slice(&img_vec)
+                    let rgb: Vec<Srgb> = Srgba::from_raw_slice(img_vec)
                         .iter()
                         .map(|x| x.into_format::<_, f32>().into_color())
                         .collect();
@@ -712,7 +701,7 @@ pub fn find_colors(
                         .map(|x| Srgba::from(*x).into_format())
                         .collect::<Vec<Srgba<u8>>>();
 
-                    let data = Srgba::from_raw_slice(&img_vec);
+                    let data = Srgba::from_raw_slice(img_vec);
                     let lab: Vec<Srgba<u8>> = Srgba::map_indices_to_centroids(centroids, &indices)
                         .iter()
                         .zip(data)
