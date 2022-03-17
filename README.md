@@ -21,7 +21,7 @@ be found at https://github.com/okaneco/kmeans-colors/releases.
 
 ```toml
 [dependencies.kmeans_colors]
-version = "0.4"
+version = "0.5"
 default-features = false
 ```
 

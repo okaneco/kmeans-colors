@@ -40,7 +40,7 @@ jobs:
       - name: Doc tests (palette feature)
         run: cargo test --no-default-features --doc --features palette_color
       - name: Build docs
-        run: cargo doc --no-deps
+        run: cargo doc --no-deps --no-default-features --features palette_color
 
   clippy-rustfmt:
     name: Clippy and rustfmt

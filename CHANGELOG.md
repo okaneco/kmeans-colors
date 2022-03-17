@@ -1,5 +1,14 @@
 # `kmeans-colors` changelog
 
+## Version 0.5.0 - 2022-03-17
+
+Version bump for updating `palette` to `0.6`.
+
+No changes to library code.
+
+[#49][49] - Update metadata for 0.5 release; CI/CD, clippy, and `image` fixups  
+[#44][44] - Upgrade `palette` to 0.6, fix clippy lints, `image` function fixups
+
 ## Version 0.4.0 - 2021-03-13
 
 Version bump for updating the `rand` dependency to 0.8. No major API changes.
@@ -75,6 +84,8 @@ performance to color and format conversions.
 ## Version 0.1.0 - 2020-04
 * Initial Commit
 
+[49]: https://github.com/okaneco/kmeans-colors/pull/49
+[44]: https://github.com/okaneco/kmeans-colors/pull/44
 [41]: https://github.com/okaneco/kmeans-colors/pull/41
 [40]: https://github.com/okaneco/kmeans-colors/pull/40
 [36]: https://github.com/okaneco/kmeans-colors/pull/36

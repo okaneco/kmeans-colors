@@ -12,8 +12,7 @@ pub fn create_filename(
     k: Option<u8>,
     file: &Path,
 ) -> Result<PathBuf, CliError> {
-    let title;
-    if input.len() == 1 {
+    let title = if input.len() == 1 {
         match output {
             Some(x) => {
                 let mut temp = x.clone();
@@ -23,12 +22,12 @@ pub fn create_filename(
                         temp.set_extension(extension);
                     }
                 }
-                title = temp;
+                temp
             }
             None => {
                 let mut temp = PathBuf::from(generate_filename(file, k)?);
                 temp.set_extension(extension);
-                title = temp;
+                temp
             }
         }
     } else {
@@ -36,29 +35,24 @@ pub fn create_filename(
             Some(x) => {
                 let mut temp = x.clone();
                 let clone = temp.clone();
-                let ext;
-                match clone.extension() {
-                    Some(y) => {
-                        ext = y.to_str().unwrap();
-                    }
-                    None => {
-                        ext = extension;
-                    }
-                }
+                let ext = match clone.extension() {
+                    Some(y) => y.to_str().unwrap(),
+                    None => extension,
+                };
                 temp.set_file_name(format!(
                     "{}-{}",
                     &file.file_stem().unwrap().to_str().unwrap(),
                     &temp.file_stem().unwrap().to_str().unwrap()
                 ));
-                title = temp.with_extension(ext);
+                temp.with_extension(ext)
             }
             None => {
                 let mut temp = PathBuf::from(generate_filename(file, k)?);
                 temp.set_extension(extension);
-                title = temp;
+                temp
             }
         }
-    }
+    };
 
     Ok(title)
 }
@@ -71,9 +65,8 @@ pub fn create_filename_palette(
     k: Option<u8>,
     file: &Path,
 ) -> Result<PathBuf, CliError> {
-    let title;
     let extension = "png";
-    if input.len() == 1 {
+    let title = if input.len() == 1 {
         match output {
             Some(x) => {
                 let mut temp = x.clone();
@@ -83,12 +76,12 @@ pub fn create_filename_palette(
                         temp.set_extension(extension);
                     }
                 }
-                title = temp;
+                temp
             }
             None => {
                 let mut temp = PathBuf::from(generate_filename_palette(file, k.unwrap(), rgb)?);
                 temp.set_extension(extension);
-                title = temp;
+                temp
             }
         }
     } else {
@@ -96,29 +89,24 @@ pub fn create_filename_palette(
             Some(x) => {
                 let mut temp = x.clone();
                 let clone = temp.clone();
-                let ext;
-                match clone.extension() {
-                    Some(y) => {
-                        ext = y.to_str().unwrap();
-                    }
-                    None => {
-                        ext = extension;
-                    }
-                }
+                let ext = match clone.extension() {
+                    Some(y) => y.to_str().unwrap(),
+                    None => extension,
+                };
                 temp.set_file_name(format!(
                     "{}-{}",
                     &file.file_stem().unwrap().to_str().unwrap(),
                     &temp.file_stem().unwrap().to_str().unwrap()
                 ));
-                title = temp.with_extension(ext);
+                temp.with_extension(ext)
             }
             None => {
                 let mut temp = PathBuf::from(generate_filename_palette(file, k.unwrap(), rgb)?);
                 temp.set_extension(extension);
-                title = temp;
+                temp
             }
         }
-    }
+    };
 
     Ok(title)
 }
