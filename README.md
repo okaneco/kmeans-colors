@@ -1,5 +1,5 @@
 # kmeans-colors
-[![Build Status](https://img.shields.io/github/workflow/status/okaneco/kmeans-colors/Rust%20CI)](https://github.com/okaneco/kmeans-colors)
+[![Build Status](https://github.com/okaneco/kmeans-colors/workflows/Rust%20CI/badge.svg)](https://github.com/okaneco/kmeans-colors)
 [![Crates.io](https://img.shields.io/crates/v/kmeans-colors.svg)](https://crates.io/crates/kmeans-colors)
 [![Docs.rs](https://docs.rs/kmeans_colors/badge.svg)](https://docs.rs/kmeans_colors)
 
@@ -21,7 +21,7 @@ be found at https://github.com/okaneco/kmeans-colors/releases.
 
 ```toml
 [dependencies.kmeans_colors]
-version = "0.5"
+version = "0.6"
 default-features = false
 ```
 

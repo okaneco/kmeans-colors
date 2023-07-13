@@ -1,6 +1,6 @@
 [package]
 name = "kmeans_colors"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["okaneco <47607823+okaneco@users.noreply.github.com>"]
 edition = "2018"
 exclude = ["test", "gfx", ".github"]
@@ -25,16 +25,22 @@ app = [
     ]
 
 # Enable `palette` color types
-palette_color = ["palette"]
+palette_color = ["palette", "num-traits"]
 
 [dependencies.image]
-version = "0.24.1"
+version = "0.24.6"
 default-features = false
 features = ["jpeg", "png"]
 optional = true
 
 [dependencies.palette]
-version = "0.6.0"
+version = "0.7.2"
+default-features = false
+features = ["std"]
+optional = true
+
+[dependencies.num-traits]
+version = "0.2.16"
 default-features = false
 features = ["std"]
 optional = true

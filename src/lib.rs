@@ -12,7 +12,7 @@
 //! When using the library, set `default-features = false` in the Cargo.toml to
 //! avoid bringing in the binary dependencies. If working with colors,
 //! implementations have been provided for the [`palette`][palette] `Lab` and
-//! `Srgb` color types behind the `palette_color` feature.
+//! `Rgb` color types behind the `palette_color` feature.
 //!
 //! The binary located in `src/bin/kmeans_colors` shows examples of crate
 //! usage.
@@ -24,7 +24,7 @@
 //! the [`Calculate`](trait.Calculate.html) trait. Further,
 //! [`Hamerly`](trait.Hamerly.html) can be implemented to enable use of the
 //! Hamerly optimization and [`get_kmeans_hamerly`][hamerly]. See the `Lab` and
-//! `Srgb` implementations in [`colors/kmeans.rs`][kmeans] for examples. These
+//! `Rgb` implementations in [`colors/kmeans.rs`][kmeans] for examples. These
 //! implementations can be used as groundwork for implementing with other types
 //! and should not require much modification beyond the distance calculations.
 //!
@@ -34,11 +34,11 @@
 //! ## Calculating k-means with `palette_color`
 //!
 //! The `palette_color` feature provides implementations of the `Calculate`
-//! trait for the `Lab` color space and `Srgb` color space. Each space has
+//! trait for the `Lab` color space and `Rgb` color space. Each space has
 //! advantages and drawbacks due to the characteristics of the color space.
 //!
 //! The `Lab` calculation produces more perceptually accurate results at a
-//! slightly slower runtime. `Srgb` calculation will converge faster than `Lab`
+//! slightly slower runtime. `Rgb` calculation will converge faster than `Lab`
 //! but the results may not visually correlate as well to the original image.
 //! Overall, properly converged results should not differ that drastically
 //! except at lower `k` counts. At `k=1`, the average color of an image,
@@ -55,7 +55,8 @@
 //! example converts an array of `u8` into `Lab` colors then finds the k-means.
 //!
 //! ```
-//! use palette::{FromColor, IntoColor, Lab, Pixel, Srgb};
+//! use palette::cast::{from_component_slice, into_component_slice};
+//! use palette::{FromColor, IntoColor, Lab, Srgb};
 //! use kmeans_colors::{get_kmeans, Calculate, Kmeans, MapColor, Sort};
 //!
 //! // An image buffer of one black pixel and one white pixel
@@ -68,7 +69,7 @@
 //! # let verbose = false;
 //! # let seed = 0;
 //! // Convert RGB [u8] buffer to Lab for k-means
-//! let lab: Vec<Lab> = Srgb::from_raw_slice(&img_vec)
+//! let lab: Vec<Lab> = from_component_slice::<Srgb<u8>>(&img_vec)
 //!     .iter()
 //!     .map(|x| x.into_format().into_color())
 //!     .collect();
@@ -95,7 +96,7 @@
 //!     .map(|x| Srgb::from_color(*x).into_format())
 //!     .collect::<Vec<Srgb<u8>>>();
 //! let buffer = Srgb::map_indices_to_centroids(&rgb, &result.indices);
-//! # assert_eq!(Srgb::into_raw_slice(&buffer), [119, 119, 119, 119, 119, 119]);
+//! # assert_eq!(into_component_slice(&buffer), [119, 119, 119, 119, 119, 119]);
 //! # // Test get_kmeans_hamerly
 //! # let mut result = Kmeans::new();
 //! # for i in 0..runs {
@@ -117,7 +118,7 @@
 //! #     .map(|x| Srgb::from_color(*x).into_format())
 //! #     .collect::<Vec<Srgb<u8>>>();
 //! # let buffer = Srgb::map_indices_to_centroids(&rgb, &result.indices);
-//! # assert_eq!(Srgb::into_raw_slice(&buffer), [119, 119, 119, 119, 119, 119]);
+//! # assert_eq!(into_component_slice(&buffer), [119, 119, 119, 119, 119, 119]);
 //! ```
 //!
 //! k-means++ is used for centroid initialization. Because the initialization is
@@ -127,7 +128,7 @@
 //! the convergence threshold has been met.
 //!
 //! The binary uses `8` as the default `k`. The iteration limit is set to `20`.
-//! The convergence factor defaults to `5.0` for `Lab` and `0.0025` for `Srgb`.
+//! The convergence factor defaults to `5.0` for `Lab` and `0.0025` for `Rgb`.
 //! The number of runs defaults to `3` for one of the binary subcommands.
 //! If the results do not appear correct, raise the iteration limit as
 //! convergence was probably not met.
@@ -141,7 +142,7 @@
 //!
 //! [sort]: trait.Sort.html#tymethod.sort_indexed_colors
 //! ```
-//! # use palette::{FromColor, IntoColor, Lab, Pixel, Srgb};
+//! # use palette::{cast::from_component_slice, FromColor, IntoColor, Lab, Srgb};
 //! # use kmeans_colors::{get_kmeans, Kmeans};
 //! use kmeans_colors::Sort;
 //!
@@ -152,7 +153,7 @@
 //! # let converge = 8.0;
 //! # let verbose = false;
 //! # let seed = 0;
-//! # let lab: Vec<Lab> = Srgb::from_raw_slice(&img_vec)
+//! # let lab: Vec<Lab> = from_component_slice::<Srgb<u8>>(&img_vec)
 //! #    .iter()
 //! #    .map(|x| x.into_format().into_color())
 //! #    .collect();
@@ -182,7 +183,7 @@
 //!
 //! // Or we can manually sort the vec by percentage, and the most appearing
 //! // color will be the first element
-//! res.sort_unstable_by(|a, b| (b.percentage).partial_cmp(&a.percentage).unwrap());
+//! res.sort_unstable_by(|a, b| (b.percentage).total_cmp(&a.percentage));
 //! let dominant_color = res.first().unwrap().centroid;
 //! ```
 #![warn(missing_docs, rust_2018_idioms, unsafe_code)]
