@@ -9,58 +9,32 @@ jobs:
   publish-binary:
     runs-on: ${{ matrix.platform.os }}
     strategy:
+      fail-fast: false
       matrix:
-        rust: [ stable ]
         platform:
           - os: macos-latest
             os-name: macos
             target: x86_64-apple-darwin
             architecture: x86_64
             binary-postfix: ""
-            use-cross: false
           - os: ubuntu-latest
             os-name: linux
             target: x86_64-unknown-linux-gnu
             architecture: x86_64
             binary-postfix: ""
-            use-cross: false
           - os: windows-latest
             os-name: windows
             target: x86_64-pc-windows-msvc
             architecture: x86_64
             binary-postfix: ".exe"
-            use-cross: false
-          - os: ubuntu-latest
-            os-name: linux
-            target: aarch64-unknown-linux-gnu
-            architecture: arm64
-            binary-postfix: ""
-            use-cross: true
-          - os: ubuntu-latest
-            os-name: linux
-            target: i686-unknown-linux-gnu
-            architecture: i686
-            binary-postfix: ""
-            use-cross: true
 
     steps:
-      - name: Install Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.rust }}
-          profile: minimal
-          override: true
-
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Cargo build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          use-cross: ${{ matrix.platform.use-cross }}
-          toolchain: ${{ matrix.rust }}
-          args: --release --target ${{ matrix.platform.target }}
+        uses: dtolnay/rust-toolchain@stable
+        run: cargo build -v --release --target ${{ matrix.platform.target }}
 
       - name: Package final binary
         shell: bash
