@@ -1,5 +1,16 @@
 # `kmeans-colors` changelog
 
+## Version 0.6.0 - 2023-07
+
+Version bump for updating `palette` to `0.7`.
+
+Users will need to change calls using
+`palette::Pixel::{from_raw_slice, into_raw_slice}`
+to `palette::cast::{from_component_slice, into_component_slice}` for preparing
+the input image buffer. See the [documentation] or `lib.rs` file for examples.
+
+[#52][52] - Upgrade palette to 0.7, bump crate version to 0.6, update CI/CD workflow
+
 ## Version 0.5.0 - 2022-03-17
 
 Version bump for updating `palette` to `0.6`.
@@ -84,6 +95,7 @@ performance to color and format conversions.
 ## Version 0.1.0 - 2020-04
 * Initial Commit
 
+[52]: https://github.com/okaneco/kmeans-colors/pull/52
 [49]: https://github.com/okaneco/kmeans-colors/pull/49
 [44]: https://github.com/okaneco/kmeans-colors/pull/44
 [41]: https://github.com/okaneco/kmeans-colors/pull/41
@@ -106,3 +118,4 @@ performance to color and format conversions.
 [6]: https://github.com/okaneco/kmeans-colors/pull/6
 [5]: https://github.com/okaneco/kmeans-colors/pull/5
 [3]: https://github.com/okaneco/kmeans-colors/pull/3
+[documentation]: https://docs.rs/kmeans_colors

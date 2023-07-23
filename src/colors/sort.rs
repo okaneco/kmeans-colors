@@ -1,7 +1,16 @@
 use crate::sort::{CentroidData, Sort};
 
 #[cfg(feature = "palette_color")]
-impl<Wp: palette::white_point::WhitePoint> Sort for palette::Lab<Wp> {
+use num_traits::{Float, FromPrimitive, Zero};
+#[cfg(feature = "palette_color")]
+use palette::{luma::Luma, rgb::Rgb, IntoColor, Lab};
+
+#[cfg(feature = "palette_color")]
+impl<Wp, T> Sort for Lab<Wp, T>
+where
+    T: Float + FromPrimitive + Zero,
+    Lab<Wp, T>: core::ops::AddAssign<Lab<Wp, T>> + Default,
+{
     fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self> {
         data.iter()
             .max_by(|a, b| (a.percentage).partial_cmp(&b.percentage).unwrap())
@@ -48,7 +57,7 @@ impl<Wp: palette::white_point::WhitePoint> Sort for palette::Lab<Wp> {
             .filter_map(|x| match colors.get(*x.0 as usize) {
                 Some(x) => colors
                     .iter()
-                    .position(|a| a.0 == x.0 as u8)
+                    .position(|a| a.0 == x.0)
                     .map(|y| CentroidData {
                         centroid: *(centroids.get(colors.get(y).unwrap().0 as usize).unwrap()),
                         percentage: colors.get(y).unwrap().1,
@@ -61,7 +70,11 @@ impl<Wp: palette::white_point::WhitePoint> Sort for palette::Lab<Wp> {
 }
 
 #[cfg(feature = "palette_color")]
-impl Sort for palette::Srgb {
+impl<S, T> Sort for Rgb<S, T>
+where
+    T: Float + FromPrimitive + Zero,
+    Rgb<S, T>: core::ops::AddAssign<Rgb<S, T>> + IntoColor<Luma<S, T>> + Default,
+{
     fn get_dominant_color(data: &[CentroidData<Self>]) -> Option<Self> {
         data.iter()
             .max_by(|a, b| (a.percentage).partial_cmp(&b.percentage).unwrap())
@@ -69,8 +82,6 @@ impl Sort for palette::Srgb {
     }
 
     fn sort_indexed_colors(centroids: &[Self], indices: &[u8]) -> Vec<CentroidData<Self>> {
-        use palette::IntoColor;
-
         // Count occurences of each color - "histogram"
         let mut map: std::collections::HashMap<u8, u64> = std::collections::HashMap::new();
         for (i, _) in centroids.iter().enumerate() {
@@ -93,7 +104,7 @@ impl Sort for palette::Srgb {
         }
 
         // Sort by increasing luminosity
-        let mut lab: Vec<(u8, palette::luma::Luma)> = centroids
+        let mut lab: Vec<(u8, Luma<S, T>)> = centroids
             .iter()
             .enumerate()
             .map(|(i, x)| (i as u8, x.into_format().into_color()))
@@ -107,7 +118,7 @@ impl Sort for palette::Srgb {
             .filter_map(|x| match colors.get(*x.0 as usize) {
                 Some(x) => colors
                     .iter()
-                    .position(|a| a.0 == x.0 as u8)
+                    .position(|a| a.0 == x.0)
                     .map(|y| CentroidData {
                         centroid: *(centroids.get(colors.get(y).unwrap().0 as usize).unwrap()),
                         percentage: colors.get(y).unwrap().1,

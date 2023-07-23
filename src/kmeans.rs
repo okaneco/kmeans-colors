@@ -204,7 +204,7 @@ impl Default for HamerlyPoint {
 /// the naive method at low center counts like `k=1`. Benchmark the functions to
 /// see which performs better for your use case.
 ///
-/// Example implementations for `Lab` and `Srgb` can be found in
+/// Example implementations for `Lab` and `Rgb` can be found in
 /// [`colors/kmeans.rs`][hamerly].
 ///
 /// [hamerly]: ../src/kmeans_colors/colors/kmeans.rs.html#165

@@ -1,13 +1,19 @@
 #[cfg(feature = "palette_color")]
-use palette::{Lab, Srgb};
+use num_traits::{Float, FromPrimitive, Zero};
+#[cfg(feature = "palette_color")]
+use palette::{rgb::Rgb, rgb::Rgba, Lab};
 
 use rand::Rng;
 
 use crate::kmeans::{Calculate, Hamerly, HamerlyCentroids, HamerlyPoint};
 
 #[cfg(feature = "palette_color")]
-impl<Wp: palette::white_point::WhitePoint> Calculate for Lab<Wp> {
-    fn get_closest_centroid(lab: &[Lab<Wp>], centroids: &[Lab<Wp>], indices: &mut Vec<u8>) {
+impl<Wp, T> Calculate for Lab<Wp, T>
+where
+    T: Float + FromPrimitive + Zero,
+    Lab<Wp, T>: core::ops::AddAssign<Lab<Wp, T>> + Default,
+{
+    fn get_closest_centroid(lab: &[Lab<Wp, T>], centroids: &[Lab<Wp, T>], indices: &mut Vec<u8>) {
         for color in lab.iter() {
             let mut index = 0;
             let mut diff;
@@ -25,69 +31,64 @@ impl<Wp: palette::white_point::WhitePoint> Calculate for Lab<Wp> {
 
     fn recalculate_centroids(
         mut rng: &mut impl Rng,
-        buf: &[Lab<Wp>],
-        centroids: &mut [Lab<Wp>],
+        buf: &[Lab<Wp, T>],
+        centroids: &mut [Lab<Wp, T>],
         indices: &[u8],
     ) {
         for (idx, cent) in centroids.iter_mut().enumerate() {
-            let mut l = 0.0;
-            let mut a = 0.0;
-            let mut b = 0.0;
+            let mut temp = Lab::<Wp, T>::default();
             let mut counter: u64 = 0;
-            for (jdx, color) in indices.iter().zip(buf) {
-                if *jdx == idx as u8 {
-                    l += color.l;
-                    a += color.a;
-                    b += color.b;
+            for (&jdx, &color) in indices.iter().zip(buf) {
+                if jdx == idx as u8 {
+                    temp += color;
                     counter += 1;
                 }
             }
             if counter != 0 {
-                *cent = Lab {
-                    l: l / (counter as f32),
-                    a: a / (counter as f32),
-                    b: b / (counter as f32),
-                    white_point: core::marker::PhantomData,
-                };
+                *cent = temp / T::from_f64(counter as f64).unwrap();
             } else {
                 *cent = Self::create_random(&mut rng);
             }
         }
     }
 
-    fn check_loop(centroids: &[Lab<Wp>], old_centroids: &[Lab<Wp>]) -> f32 {
-        let mut l = 0.0;
-        let mut a = 0.0;
-        let mut b = 0.0;
-        for c in centroids.iter().zip(old_centroids) {
-            l += (c.0).l - (c.1).l;
-            a += (c.0).a - (c.1).a;
-            b += (c.0).b - (c.1).b;
+    fn check_loop(centroids: &[Lab<Wp, T>], old_centroids: &[Lab<Wp, T>]) -> f32 {
+        let mut temp = Lab::<Wp, T>::default();
+        for (&c0, &c1) in centroids.iter().zip(old_centroids) {
+            temp += c0 - c1;
         }
 
-        l * l + a * a + b * b
+        ((temp.l).powi(2) + (temp.a).powi(2) + (temp.b).powi(2))
+            .to_f32()
+            .unwrap_or(f32::MAX)
     }
 
     #[inline]
-    fn create_random(rng: &mut impl Rng) -> Lab<Wp> {
-        Lab::with_wp(
-            rng.gen_range(0.0..=100.0),
-            rng.gen_range(-128.0..=127.0),
-            rng.gen_range(-128.0..=127.0),
+    fn create_random(rng: &mut impl Rng) -> Lab<Wp, T> {
+        Lab::<Wp, T>::new(
+            T::from_f64(rng.gen_range(0.0..=100.0)).unwrap(),
+            T::from_f64(rng.gen_range(-128.0..=127.0)).unwrap(),
+            T::from_f64(rng.gen_range(-128.0..=127.0)).unwrap(),
         )
     }
 
     #[inline]
-    fn difference(c1: &Lab<Wp>, c2: &Lab<Wp>) -> f32 {
-        (c1.l - c2.l) * (c1.l - c2.l)
-            + (c1.a - c2.a) * (c1.a - c2.a)
-            + (c1.b - c2.b) * (c1.b - c2.b)
+    fn difference(c1: &Lab<Wp, T>, c2: &Lab<Wp, T>) -> f32 {
+        let temp = *c1 - *c2;
+
+        ((temp.l).powi(2) + (temp.a).powi(2) + (temp.b).powi(2))
+            .to_f32()
+            .unwrap_or(f32::MAX)
     }
 }
 
 #[cfg(feature = "palette_color")]
-impl Calculate for Srgb {
-    fn get_closest_centroid(rgb: &[Srgb], centroids: &[Srgb], indices: &mut Vec<u8>) {
+impl<S, T> Calculate for Rgb<S, T>
+where
+    T: Float + FromPrimitive + Zero,
+    Rgb<S, T>: core::ops::AddAssign<Rgb<S, T>> + Default,
+{
+    fn get_closest_centroid(rgb: &[Rgb<S, T>], centroids: &[Rgb<S, T>], indices: &mut Vec<u8>) {
         for color in rgb.iter() {
             let mut index = 0;
             let mut diff;
@@ -105,64 +106,63 @@ impl Calculate for Srgb {
 
     fn recalculate_centroids(
         mut rng: &mut impl Rng,
-        buf: &[Srgb],
-        centroids: &mut [Srgb],
+        buf: &[Rgb<S, T>],
+        centroids: &mut [Rgb<S, T>],
         indices: &[u8],
     ) {
         for (idx, cent) in centroids.iter_mut().enumerate() {
-            let mut red = 0.0;
-            let mut green = 0.0;
-            let mut blue = 0.0;
+            let mut temp = Rgb::<S, T>::new(T::zero(), T::zero(), T::zero());
             let mut counter: u64 = 0;
-            for (jdx, color) in indices.iter().zip(buf) {
-                if *jdx == idx as u8 {
-                    red += color.red;
-                    green += color.green;
-                    blue += color.blue;
+            for (&jdx, &color) in indices.iter().zip(buf) {
+                if jdx == idx as u8 {
+                    temp += color;
                     counter += 1;
                 }
             }
             if counter != 0 {
-                *cent = Srgb {
-                    red: red / (counter as f32),
-                    green: green / (counter as f32),
-                    blue: blue / (counter as f32),
-                    standard: core::marker::PhantomData,
-                };
+                *cent = temp / T::from_f64(counter as f64).unwrap();
             } else {
                 *cent = Self::create_random(&mut rng);
             }
         }
     }
 
-    fn check_loop(centroids: &[Srgb], old_centroids: &[Srgb]) -> f32 {
-        let mut red = 0.0;
-        let mut green = 0.0;
-        let mut blue = 0.0;
-        for c in centroids.iter().zip(old_centroids) {
-            red += (c.0).red - (c.1).red;
-            green += (c.0).green - (c.1).green;
-            blue += (c.0).blue - (c.1).blue;
+    fn check_loop(centroids: &[Rgb<S, T>], old_centroids: &[Rgb<S, T>]) -> f32 {
+        let mut temp = Rgb::<S, T>::default();
+        for (&c0, &c1) in centroids.iter().zip(old_centroids) {
+            temp += c0 - c1;
         }
 
-        red * red + green * green + blue * blue
+        ((temp.red).powi(2) + (temp.green).powi(2) + (temp.blue).powi(2))
+            .to_f32()
+            .unwrap_or(f32::MAX)
     }
 
     #[inline]
-    fn create_random(rng: &mut impl Rng) -> Srgb {
-        Srgb::new(rng.gen(), rng.gen(), rng.gen())
+    fn create_random(rng: &mut impl Rng) -> Rgb<S, T> {
+        Rgb::<S, T>::new(
+            T::from_f64(rng.gen_range(0.0..=1.0)).unwrap(),
+            T::from_f64(rng.gen_range(0.0..=1.0)).unwrap(),
+            T::from_f64(rng.gen_range(0.0..=1.0)).unwrap(),
+        )
     }
 
     #[inline]
-    fn difference(c1: &Srgb, c2: &Srgb) -> f32 {
-        (c1.red - c2.red) * (c1.red - c2.red)
-            + (c1.green - c2.green) * (c1.green - c2.green)
-            + (c1.blue - c2.blue) * (c1.blue - c2.blue)
+    fn difference(c1: &Rgb<S, T>, c2: &Rgb<S, T>) -> f32 {
+        let temp = *c1 - *c2;
+
+        ((temp.red).powi(2) + (temp.green).powi(2) + (temp.blue).powi(2))
+            .to_f32()
+            .unwrap_or(f32::MAX)
     }
 }
 
 #[cfg(feature = "palette_color")]
-impl<Wp: palette::white_point::WhitePoint> Hamerly for Lab<Wp> {
+impl<Wp, T> Hamerly for Lab<Wp, T>
+where
+    T: Float + FromPrimitive + Zero,
+    Lab<Wp, T>: core::ops::AddAssign<Lab<Wp, T>> + Default,
+{
     fn compute_half_distances(centers: &mut HamerlyCentroids<Self>) {
         // Find each center's closest center
         for ((i, ci), half_dist) in centers
@@ -253,25 +253,16 @@ impl<Wp: palette::white_point::WhitePoint> Hamerly for Lab<Wp> {
             .enumerate()
             .zip(centers.deltas.iter_mut())
         {
-            let mut l = 0.0;
-            let mut a = 0.0;
-            let mut b = 0.0;
+            let mut temp = Lab::<Wp, T>::default();
             let mut counter: u64 = 0;
-            for (point, color) in points.iter().zip(buf) {
+            for (point, &color) in points.iter().zip(buf) {
                 if point.index == idx as u8 {
-                    l += color.l;
-                    a += color.a;
-                    b += color.b;
+                    temp += color;
                     counter += 1;
                 }
             }
             if counter != 0 {
-                let new_color = Lab {
-                    l: l / (counter as f32),
-                    a: a / (counter as f32),
-                    b: b / (counter as f32),
-                    white_point: core::marker::PhantomData,
-                };
+                let new_color = temp / T::from_f64(counter as f64).unwrap();
                 *delta = Self::difference(cent, &new_color).sqrt();
                 *cent = new_color;
             } else {
@@ -298,7 +289,11 @@ impl<Wp: palette::white_point::WhitePoint> Hamerly for Lab<Wp> {
 }
 
 #[cfg(feature = "palette_color")]
-impl Hamerly for Srgb {
+impl<S, T> Hamerly for Rgb<S, T>
+where
+    T: Float + FromPrimitive + Zero,
+    Rgb<S, T>: core::ops::AddAssign<Rgb<S, T>> + Default,
+{
     fn compute_half_distances(centers: &mut HamerlyCentroids<Self>) {
         // Find each center's closest center
         for ((i, ci), half_dist) in centers
@@ -389,25 +384,16 @@ impl Hamerly for Srgb {
             .enumerate()
             .zip(centers.deltas.iter_mut())
         {
-            let mut red = 0.0;
-            let mut green = 0.0;
-            let mut blue = 0.0;
+            let mut temp = Rgb::<S, T>::default();
             let mut counter: u64 = 0;
-            for (point, color) in points.iter().zip(buf) {
+            for (point, &color) in points.iter().zip(buf) {
                 if point.index == idx as u8 {
-                    red += color.red;
-                    green += color.green;
-                    blue += color.blue;
+                    temp += color;
                     counter += 1;
                 }
             }
             if counter != 0 {
-                let new_color = Srgb {
-                    red: red / (counter as f32),
-                    green: green / (counter as f32),
-                    blue: blue / (counter as f32),
-                    standard: core::marker::PhantomData,
-                };
+                let new_color = temp / T::from_f64(counter as f64).unwrap();
                 *delta = Self::difference(cent, &new_color).sqrt();
                 *cent = new_color;
             } else {
@@ -441,9 +427,9 @@ pub trait MapColor: Sized {
 }
 
 #[cfg(feature = "palette_color")]
-impl<Wp> MapColor for Lab<Wp>
+impl<Wp, T> MapColor for Lab<Wp, T>
 where
-    Wp: palette::white_point::WhitePoint,
+    T: Copy,
 {
     #[inline]
     fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
@@ -459,9 +445,9 @@ where
 }
 
 #[cfg(feature = "palette_color")]
-impl<Wp> MapColor for palette::Laba<Wp>
+impl<Wp, T> MapColor for palette::Laba<Wp, T>
 where
-    Wp: palette::white_point::WhitePoint,
+    T: Copy,
 {
     #[inline]
     fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
@@ -477,9 +463,9 @@ where
 }
 
 #[cfg(feature = "palette_color")]
-impl<C> MapColor for Srgb<C>
+impl<S, T> MapColor for Rgb<S, T>
 where
-    C: palette::Component,
+    T: Copy,
 {
     #[inline]
     fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {
@@ -495,9 +481,9 @@ where
 }
 
 #[cfg(feature = "palette_color")]
-impl<C> MapColor for palette::Srgba<C>
+impl<S, T> MapColor for Rgba<S, T>
 where
-    C: palette::Component,
+    T: Copy,
 {
     #[inline]
     fn map_indices_to_centroids(centroids: &[Self], indices: &[u8]) -> Vec<Self> {

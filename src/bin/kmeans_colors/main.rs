@@ -24,33 +24,7 @@ fn main() {
 fn try_main() -> Result<(), Box<dyn Error>> {
     let opt = Opt::from_args();
     match opt.cmd {
-        Some(Command::Find {
-            input,
-            colors,
-            replace,
-            max_iter,
-            factor,
-            runs,
-            percentage,
-            rgb,
-            verbose,
-            output,
-            seed,
-            transparent,
-        }) => find_colors(
-            input,
-            colors,
-            replace,
-            max_iter,
-            factor,
-            runs,
-            percentage,
-            rgb,
-            verbose,
-            output,
-            seed,
-            transparent,
-        )?,
+        Some(command @ Command::Find { .. }) => find_colors(command)?,
         _ => run(opt)?,
     }
 

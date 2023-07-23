@@ -5,7 +5,7 @@ use std::io::BufWriter;
 use std::path::Path;
 
 use image::ImageEncoder;
-use palette::{IntoColor, Pixel, Srgb};
+use palette::{IntoColor, Srgb};
 
 use crate::err::CliError;
 use kmeans_colors::{Calculate, CentroidData};
@@ -191,14 +191,14 @@ pub fn save_palette<C: Calculate + Copy + IntoColor<Srgb>>(
                 .centroid
                 .into_color()
                 .into_format()
-                .into_raw();
+                .into();
             *pixel = image::Rgb(color);
         }
     } else {
         let mut curr_pos = 0;
         if let Some((last, elements)) = res.split_last() {
             for r in elements.iter() {
-                let pix: [u8; 3] = r.centroid.into_color().into_format().into_raw();
+                let pix: [u8; 3] = r.centroid.into_color().into_format().into();
                 // Clamp boundary to image width
                 let boundary =
                     ((curr_pos as f32 + (r.percentage * w as f32)).round() as u32).min(w);
@@ -213,7 +213,7 @@ pub fn save_palette<C: Calculate + Copy + IntoColor<Srgb>>(
                 }
                 curr_pos = boundary;
             }
-            let pix: [u8; 3] = last.centroid.into_color().into_format().into_raw();
+            let pix: [u8; 3] = last.centroid.into_color().into_format().into();
             for y in 0..height {
                 for x in curr_pos..w {
                     imgbuf.put_pixel(x, y, image::Rgb(pix));
