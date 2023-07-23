@@ -29,12 +29,9 @@ jobs:
             binary-postfix: ".exe"
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Cargo build
-        uses: dtolnay/rust-toolchain@stable
-        run: cargo build -v --release --target ${{ matrix.platform.target }}
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build -v --release --target ${{ matrix.platform.target }}
 
       - name: Package final binary
         shell: bash
