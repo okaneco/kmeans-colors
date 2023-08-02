@@ -3,6 +3,7 @@ use std::fmt::Write;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
+use std::str::FromStr;
 
 use image::ImageEncoder;
 use palette::{IntoColor, Srgb};
@@ -12,37 +13,10 @@ use kmeans_colors::{Calculate, CentroidData};
 
 /// Parse hex string to Rgb color.
 pub fn parse_color(c: &str) -> Result<Srgb<u8>, CliError> {
-    let red = u8::from_str_radix(
-        match &c.get(0..2) {
-            Some(x) => x,
-            None => {
-                eprintln!("Invalid color: {}", c);
-                return Err(CliError::InvalidHex);
-            }
-        },
-        16,
-    )?;
-    let green = u8::from_str_radix(
-        match &c.get(2..4) {
-            Some(x) => x,
-            None => {
-                eprintln!("Invalid color: {}", c);
-                return Err(CliError::InvalidHex);
-            }
-        },
-        16,
-    )?;
-    let blue = u8::from_str_radix(
-        match &c.get(4..6) {
-            Some(x) => x,
-            None => {
-                eprintln!("Invalid color: {}", c);
-                return Err(CliError::InvalidHex);
-            }
-        },
-        16,
-    )?;
-    Ok(Srgb::new(red, green, blue))
+    Srgb::from_str(c).or_else(|_| {
+        eprintln!("Invalid color: {c}");
+        Err(CliError::InvalidHex)
+    })
 }
 
 /// Prints colors and percentage of their appearance in an image buffer.

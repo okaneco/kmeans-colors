@@ -30,13 +30,13 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
             let lab: Vec<Lab<D65, f32>> = if !opt.transparent {
                 from_component_slice::<Srgba<u8>>(img_vec)
                     .iter()
-                    .map(|x| x.into_format::<_, f32>().into_color())
+                    .map(|x| x.into_linear::<_, f32>().into_color())
                     .collect()
             } else {
                 from_component_slice::<Srgba<u8>>(img_vec)
                     .iter()
                     .filter(|x| x.alpha == 255)
-                    .map(|x| x.into_format::<_, f32>().into_color())
+                    .map(|x| x.into_linear::<_, f32>().into_color())
                     .collect()
             };
 
@@ -112,7 +112,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                 let centroids = &result
                     .centroids
                     .iter()
-                    .map(|x| Srgb::from_color(*x).into_format())
+                    .map(|&x| Srgb::from_linear(x.into_color()))
                     .collect::<Vec<Srgb<u8>>>();
                 let lab: Vec<Srgb<u8>> = Srgb::map_indices_to_centroids(centroids, &result.indices);
 
@@ -130,7 +130,7 @@ pub fn run(opt: Opt) -> Result<(), Box<dyn Error>> {
                 let mut indices = Vec::with_capacity(img_vec.len());
                 let lab: Vec<Lab<D65, f32>> = from_component_slice::<Srgba<u8>>(img_vec)
                     .iter()
-                    .map(|x| x.into_format::<_, f32>().into_color())
+                    .map(|x| x.into_linear::<_, f32>().into_color())
                     .collect();
                 Lab::<D65, f32>::get_closest_centroid(&lab, &result.centroids, &mut indices);
 
@@ -329,7 +329,7 @@ pub fn find_colors(
         for c in colors {
             centroids.push(
                 (parse_color(c.trim_start_matches('#'))?)
-                    .into_format()
+                    .into_linear::<f32>()
                     .into_color(),
             );
         }
@@ -346,13 +346,13 @@ pub fn find_colors(
             let lab: Vec<Lab<D65, f32>> = if !transparent {
                 from_component_slice::<Srgba<u8>>(img_vec)
                     .iter()
-                    .map(|x| x.into_format::<_, f32>().into_color())
+                    .map(|x| x.into_linear::<_, f32>().into_color())
                     .collect()
             } else {
                 from_component_slice::<Srgba<u8>>(img_vec)
                     .iter()
                     .filter(|x| x.alpha == 255)
-                    .map(|x| x.into_format::<_, f32>().into_color())
+                    .map(|x| x.into_linear::<_, f32>().into_color())
                     .collect()
             };
 
@@ -371,7 +371,7 @@ pub fn find_colors(
                 if !transparent {
                     let rgb_centroids = &centroids
                         .iter()
-                        .map(|x| Srgb::from_color(*x).into_format())
+                        .map(|&x| Srgb::from_linear(x.into_color()))
                         .collect::<Vec<Srgb<u8>>>();
                     let lab: Vec<Srgb<u8>> =
                         Srgb::map_indices_to_centroids(rgb_centroids, &indices);
@@ -386,7 +386,7 @@ pub fn find_colors(
                 } else {
                     let rgb_centroids = &centroids
                         .iter()
-                        .map(|x| Srgb::from_color(*x).into_format())
+                        .map(|&x| Srgb::from_linear(x.into_color()))
                         .collect::<Vec<Srgb>>();
 
                     let mut indices = Vec::with_capacity(img_vec.len());

@@ -71,7 +71,7 @@
 //! // Convert RGB [u8] buffer to Lab for k-means
 //! let lab: Vec<Lab> = from_component_slice::<Srgb<u8>>(&img_vec)
 //!     .iter()
-//!     .map(|x| x.into_format().into_color())
+//!     .map(|x| x.into_linear().into_color())
 //!     .collect();
 //!
 //! // Iterate over the runs, keep the best results
@@ -93,7 +93,7 @@
 //! // Convert indexed colors back to Srgb<u8> for output
 //! let rgb = &result.centroids
 //!     .iter()
-//!     .map(|x| Srgb::from_color(*x).into_format())
+//!     .map(|&x| Srgb::from_linear(x.into_color()))
 //!     .collect::<Vec<Srgb<u8>>>();
 //! let buffer = Srgb::map_indices_to_centroids(&rgb, &result.indices);
 //! # assert_eq!(into_component_slice(&buffer), [119, 119, 119, 119, 119, 119]);
@@ -115,7 +115,7 @@
 //! # // Convert indexed colors back to Srgb<u8> for output
 //! # let rgb = &result.centroids
 //! #     .iter()
-//! #     .map(|x| Srgb::from_color(*x).into_format())
+//! #     .map(|&x| Srgb::from_linear(x.into_color()))
 //! #     .collect::<Vec<Srgb<u8>>>();
 //! # let buffer = Srgb::map_indices_to_centroids(&rgb, &result.indices);
 //! # assert_eq!(into_component_slice(&buffer), [119, 119, 119, 119, 119, 119]);

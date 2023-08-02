@@ -16,7 +16,7 @@ use args::{Command, Opt};
 
 fn main() {
     if let Err(e) = try_main() {
-        eprintln!("{}", e);
+        eprintln!("kmeans_colors: {e}");
         process::exit(1);
     }
 }
