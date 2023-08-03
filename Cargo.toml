@@ -3,7 +3,7 @@ name = "kmeans_colors"
 version = "0.6.0"
 authors = ["okaneco <47607823+okaneco@users.noreply.github.com>"]
 edition = "2018"
-exclude = ["test", "gfx", ".github"]
+exclude = ["test", "gfx", ".github", "examples"]
 homepage = "https://github.com/okaneco/kmeans-colors"
 repository = "https://github.com/okaneco/kmeans-colors"
 readme = "README.md"
@@ -25,7 +25,7 @@ app = [
     ]
 
 # Enable `palette` color types
-palette_color = ["palette", "num-traits"]
+palette_color = ["palette"]
 
 [dependencies.image]
 version = "0.24.6"
@@ -43,7 +43,6 @@ optional = true
 version = "0.2.16"
 default-features = false
 features = ["std"]
-optional = true
 
 [dependencies.rand]
 version = "0.8.5"
