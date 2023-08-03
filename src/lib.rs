@@ -186,7 +186,22 @@
 //! res.sort_unstable_by(|a, b| (b.percentage).total_cmp(&a.percentage));
 //! let dominant_color = res.first().unwrap().centroid;
 //! ```
-#![warn(missing_docs, rust_2018_idioms, unsafe_code)]
+#![forbid(
+    absolute_paths_not_starting_with_crate,
+    missing_docs,
+    non_ascii_idents,
+    noop_method_call,
+    rust_2018_idioms,
+    unsafe_code,
+    unused_results
+)]
+#![warn(
+    clippy::cast_lossless,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss
+)]
 
 #[cfg(feature = "palette_color")]
 mod colors;

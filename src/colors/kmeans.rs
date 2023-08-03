@@ -13,6 +13,7 @@ where
     T: Float + FromPrimitive + Zero,
     Lab<Wp, T>: core::ops::AddAssign<Lab<Wp, T>> + Default,
 {
+    #[allow(clippy::cast_possible_truncation)]
     fn get_closest_centroid(lab: &[Lab<Wp, T>], centroids: &[Lab<Wp, T>], indices: &mut Vec<u8>) {
         for color in lab.iter() {
             let mut index = 0;
@@ -29,6 +30,7 @@ where
         }
     }
 
+    #[allow(clippy::cast_precision_loss)]
     fn recalculate_centroids(
         mut rng: &mut impl Rng,
         buf: &[Lab<Wp, T>],
@@ -39,7 +41,7 @@ where
             let mut temp = Lab::<Wp, T>::default();
             let mut counter: u64 = 0;
             for (&jdx, &color) in indices.iter().zip(buf) {
-                if jdx == idx as u8 {
+                if jdx as usize == idx {
                     temp += color;
                     counter += 1;
                 }
@@ -88,6 +90,7 @@ where
     T: Float + FromPrimitive + Zero,
     Rgb<S, T>: core::ops::AddAssign<Rgb<S, T>> + Default,
 {
+    #[allow(clippy::cast_possible_truncation)]
     fn get_closest_centroid(rgb: &[Rgb<S, T>], centroids: &[Rgb<S, T>], indices: &mut Vec<u8>) {
         for color in rgb.iter() {
             let mut index = 0;
@@ -104,6 +107,7 @@ where
         }
     }
 
+    #[allow(clippy::cast_precision_loss)]
     fn recalculate_centroids(
         mut rng: &mut impl Rng,
         buf: &[Rgb<S, T>],
@@ -114,7 +118,7 @@ where
             let mut temp = Rgb::<S, T>::new(T::zero(), T::zero(), T::zero());
             let mut counter: u64 = 0;
             for (&jdx, &color) in indices.iter().zip(buf) {
-                if jdx == idx as u8 {
+                if jdx as usize == idx {
                     temp += color;
                     counter += 1;
                 }
@@ -187,6 +191,7 @@ where
         }
     }
 
+    #[allow(clippy::cast_possible_truncation)]
     fn get_closest_centroid_hamerly(
         buffer: &[Self],
         centers: &HamerlyCentroids<Self>,
@@ -241,6 +246,7 @@ where
         }
     }
 
+    #[allow(clippy::cast_precision_loss)]
     fn recalculate_centroids_hamerly(
         mut rng: &mut impl Rng,
         buf: &[Self],
@@ -256,7 +262,7 @@ where
             let mut temp = Lab::<Wp, T>::default();
             let mut counter: u64 = 0;
             for (point, &color) in points.iter().zip(buf) {
-                if point.index == idx as u8 {
+                if point.index as usize == idx {
                     temp += color;
                     counter += 1;
                 }
@@ -318,6 +324,7 @@ where
         }
     }
 
+    #[allow(clippy::cast_possible_truncation)]
     fn get_closest_centroid_hamerly(
         buffer: &[Self],
         centers: &HamerlyCentroids<Self>,
@@ -372,6 +379,7 @@ where
         }
     }
 
+    #[allow(clippy::cast_precision_loss)]
     fn recalculate_centroids_hamerly(
         mut rng: &mut impl Rng,
         buf: &[Self],
@@ -387,7 +395,7 @@ where
             let mut temp = Rgb::<S, T>::default();
             let mut counter: u64 = 0;
             for (point, &color) in points.iter().zip(buf) {
-                if point.index == idx as u8 {
+                if point.index as usize == idx {
                     temp += color;
                     counter += 1;
                 }
