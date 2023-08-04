@@ -1,5 +1,7 @@
 use rand::{Rng, SeedableRng};
 
+mod array;
+
 /// A trait for enabling k-means calculation of a data type.
 pub trait Calculate: Sized {
     /// Find a points's nearest centroid, index the point with that centroid.
