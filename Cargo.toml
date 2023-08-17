@@ -25,7 +25,12 @@ app = [
     ]
 
 # Enable `palette` color types
-palette_color = ["palette", "num-traits"]
+palette_color = ["palette", "num-traits", "fxhash"]
+
+[dependencies.fxhash]
+version = "0.2.1"
+default-features = false
+optional = true
 
 [dependencies.image]
 version = "0.24.6"
@@ -34,7 +39,7 @@ features = ["jpeg", "png"]
 optional = true
 
 [dependencies.palette]
-version = "0.7.2"
+version = "0.7.3"
 default-features = false
 features = ["std"]
 optional = true

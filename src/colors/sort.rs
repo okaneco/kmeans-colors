@@ -17,12 +17,15 @@ where
             .map(|res| res.centroid)
     }
 
+    #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
     fn sort_indexed_colors(centroids: &[Self], indices: &[u8]) -> Vec<CentroidData<Self>> {
         // Count occurences of each color - "histogram"
-        let mut map: std::collections::HashMap<u8, u64> = std::collections::HashMap::new();
-        for (i, _) in centroids.iter().enumerate() {
-            map.insert(i as u8, 0);
-        }
+        let mut map: fxhash::FxHashMap<u8, u64> = centroids
+            .iter()
+            .enumerate()
+            .map(|(i, _)| (i as u8, 0))
+            .collect();
+
         for i in indices {
             let count = map.entry(*i).or_insert(0);
             *count += 1;
@@ -32,10 +35,8 @@ where
         assert!(len > 0);
         let mut colors: Vec<(u8, f32)> = Vec::with_capacity(centroids.len());
         for (i, _) in centroids.iter().enumerate() {
-            let count = map.get(&(i as u8));
-            match count {
-                Some(x) => colors.push((i as u8, (*x as f32) / (len as f32))),
-                None => continue,
+            if let Some(&count) = map.get(&(i as u8)) {
+                colors.push((i as u8, (count as f32) / (len as f32)))
             }
         }
 
@@ -81,12 +82,15 @@ where
             .map(|res| res.centroid)
     }
 
+    #[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
     fn sort_indexed_colors(centroids: &[Self], indices: &[u8]) -> Vec<CentroidData<Self>> {
         // Count occurences of each color - "histogram"
-        let mut map: std::collections::HashMap<u8, u64> = std::collections::HashMap::new();
-        for (i, _) in centroids.iter().enumerate() {
-            map.insert(i as u8, 0);
-        }
+        let mut map: fxhash::FxHashMap<u8, u64> = centroids
+            .iter()
+            .enumerate()
+            .map(|(i, _)| (i as u8, 0))
+            .collect();
+
         for i in indices {
             let count = map.entry(*i).or_insert(0);
             *count += 1;
@@ -96,10 +100,8 @@ where
         assert!(len > 0);
         let mut colors: Vec<(u8, f32)> = Vec::with_capacity(centroids.len());
         for (i, _) in centroids.iter().enumerate() {
-            let count = map.get(&(i as u8));
-            match count {
-                Some(x) => colors.push((i as u8, (*x as f32) / (len as f32))),
-                None => continue,
+            if let Some(&count) = map.get(&(i as u8)) {
+                colors.push((i as u8, (count as f32) / (len as f32)))
             }
         }
 

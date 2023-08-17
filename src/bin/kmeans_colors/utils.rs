@@ -6,16 +6,16 @@ use std::path::Path;
 use std::str::FromStr;
 
 use image::ImageEncoder;
-use palette::{IntoColor, Srgb};
+use palette::{white_point::D65, IntoColor, Lab, Srgb, Srgba};
 
 use crate::err::CliError;
 use kmeans_colors::{Calculate, CentroidData};
 
 /// Parse hex string to Rgb color.
 pub fn parse_color(c: &str) -> Result<Srgb<u8>, CliError> {
-    Srgb::from_str(c).or_else(|_| {
+    Srgb::from_str(c).map_err(|_| {
         eprintln!("Invalid color: {c}");
-        Err(CliError::InvalidHex)
+        CliError::InvalidHex
     })
 }
 
@@ -197,4 +197,21 @@ pub fn save_palette<C: Calculate + Copy + IntoColor<Srgb>>(
     }
 
     save_image(imgbuf.as_raw(), w, height, title, true)
+}
+
+/// Optimized conversion of colors from Srgb to Lab using a hashmap for caching
+/// of expensive color conversions.
+///
+/// Additionally, converting from Srgb to Linear Srgb is special-cased in
+/// `palette` to use a lookup table which is faster than the regular conversion
+/// using `color.into_format().into_color()`.
+pub fn cached_srgba_to_lab<'a>(
+    rgb: impl Iterator<Item = &'a Srgba<u8>>,
+    map: &mut fxhash::FxHashMap<[u8; 3], Lab<D65, f32>>,
+    lab_pixels: &mut Vec<Lab<D65, f32>>,
+) {
+    lab_pixels.extend(rgb.map(|color| {
+        *map.entry([color.red, color.green, color.blue])
+            .or_insert_with(|| color.into_linear::<_, f32>().into_color())
+    }))
 }
