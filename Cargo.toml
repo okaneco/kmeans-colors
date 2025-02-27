@@ -18,7 +18,11 @@ Backed by a generic k-means implementation offered as a standalone library."""
 default = ["app"]
 
 # Features required for building the binary
-app = ["image", "palette_color", "structopt"]
+app = [
+        "image",
+        "palette_color",
+        "structopt",
+    ]
 
 # Enable `palette` color types
 palette_color = ["palette", "num-traits", "fxhash"]
@@ -29,19 +33,19 @@ default-features = false
 optional = true
 
 [dependencies.image]
-version = "0.24.6"
+version = "0.25.6"
 default-features = false
 features = ["jpeg", "png"]
 optional = true
 
 [dependencies.palette]
-version = "0.7.3"
+version = "0.7.6"
 default-features = false
 features = ["std"]
 optional = true
 
 [dependencies.num-traits]
-version = "0.2.16"
+version = "0.2.19"
 default-features = false
 features = ["std"]
 optional = true

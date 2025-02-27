@@ -2,6 +2,7 @@
 use num_traits::{Float, FromPrimitive, Zero};
 #[cfg(feature = "palette_color")]
 use palette::{rgb::Rgb, rgb::Rgba, Lab};
+
 use rand::Rng;
 
 use crate::kmeans::{Calculate, Hamerly, HamerlyCentroids, HamerlyPoint};
