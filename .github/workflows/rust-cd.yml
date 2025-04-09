@@ -29,7 +29,7 @@ jobs:
             binary-postfix: ".exe"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build -v --release --target ${{ matrix.platform.target }}
 

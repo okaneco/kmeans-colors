@@ -1,5 +1,18 @@
 # `kmeans-colors` changelog
 
+## Version 0.7.0 - 2023-07
+
+Version bump for updating `rand` to `0.9`.
+
+Optimized color conversion performance in the binary application.  
+Switched the color parsing logic for the binary application to allow for 3 or 6
+digit hexadecimal colors.  
+See [#55][55] and [#57][57] for more details.
+
+[#62][62] - Update rand crate and usage  
+[#57][57] - Add fxhash for caching, relocate find_colors to find.rs  
+[#55][55] - Speed up Lab conversion with Srgb/LinSrgb fast path, use palette FromStr impl
+
 ## Version 0.6.0 - 2023-07
 
 Version bump for updating `palette` to `0.7`.
@@ -95,6 +108,9 @@ performance to color and format conversions.
 ## Version 0.1.0 - 2020-04
 * Initial Commit
 
+[62]: https://github.com/okaneco/kmeans-colors/pull/62
+[57]: https://github.com/okaneco/kmeans-colors/pull/57
+[55]: https://github.com/okaneco/kmeans-colors/pull/55
 [52]: https://github.com/okaneco/kmeans-colors/pull/52
 [49]: https://github.com/okaneco/kmeans-colors/pull/49
 [44]: https://github.com/okaneco/kmeans-colors/pull/44
