@@ -69,7 +69,7 @@ pub fn save_image(
         );
 
         // Clean up if file is created but there's a problem writing to it
-        match encoder.write_image(imgbuf, imgx, imgy, image::ColorType::Rgb8) {
+        match encoder.write_image(imgbuf, imgx, imgy, image::ExtendedColorType::Rgb8) {
             Ok(_) => {}
             Err(err) => {
                 eprintln!("Error: {}.", err);
@@ -79,7 +79,7 @@ pub fn save_image(
     } else {
         let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut w, 90);
 
-        match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgb8) {
+        match encoder.encode(imgbuf, imgx, imgy, image::ExtendedColorType::Rgb8) {
             Ok(_) => {}
             Err(err) => {
                 eprintln!("Error: {}.", err);
@@ -107,7 +107,7 @@ pub fn save_image_alpha(
         );
 
         // Clean up if file is created but there's a problem writing to it
-        match encoder.write_image(imgbuf, imgx, imgy, image::ColorType::Rgba8) {
+        match encoder.write_image(imgbuf, imgx, imgy, image::ExtendedColorType::Rgba8) {
             Ok(_) => {}
             Err(err) => {
                 eprintln!("Error: {}.", err);
@@ -117,7 +117,7 @@ pub fn save_image_alpha(
     } else {
         let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut w, 90);
 
-        match encoder.encode(imgbuf, imgx, imgy, image::ColorType::Rgba8) {
+        match encoder.encode(imgbuf, imgx, imgy, image::ExtendedColorType::Rgba8) {
             Ok(_) => {}
             Err(err) => {
                 eprintln!("Error: {}.", err);

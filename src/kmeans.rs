@@ -42,7 +42,7 @@ impl<C: Calculate> Kmeans<C> {
     /// Create a new `Kmeans` struct to contain k-means results.
     pub fn new() -> Self {
         Kmeans {
-            score: core::f32::MAX,
+            score: f32::MAX,
             centroids: Vec::new(),
             indices: Vec::new(),
         }

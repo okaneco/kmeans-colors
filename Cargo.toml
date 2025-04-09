@@ -33,30 +33,30 @@ default-features = false
 optional = true
 
 [dependencies.image]
-version = "0.24.6"
+version = "0.25.6"
 default-features = false
 features = ["jpeg", "png"]
 optional = true
 
 [dependencies.palette]
-version = "0.7.3"
+version = "0.7.6"
 default-features = false
 features = ["std"]
 optional = true
 
 [dependencies.num-traits]
-version = "0.2.16"
+version = "0.2.19"
 default-features = false
 features = ["std"]
 optional = true
 
 [dependencies.rand]
-version = "0.8.5"
+version = "0.9.0"
 default-features = false
-features = ["std"]
+features = ["thread_rng"]
 
 [dependencies.rand_chacha]
-version = "0.3.1"
+version = "0.9.0"
 default-features = false
 
 [dependencies.structopt]

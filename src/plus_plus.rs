@@ -1,4 +1,4 @@
-use rand::distributions::{Distribution, WeightedIndex};
+use rand::distr::{Distribution, weighted::WeightedIndex};
 use rand::Rng;
 
 /// k-means++ centroid initialization.
@@ -26,7 +26,7 @@ pub fn init_plus_plus<C: crate::Calculate + Clone>(
     let mut weights: Vec<f32> = (0..len).map(|_| 0.0).collect();
 
     // Choose first centroid at random, uniform sampling from input buffer
-    centroids.push(buf.get(rng.gen_range(0..len)).unwrap().to_owned());
+    centroids.push(buf.get(rng.random_range(0..len)).unwrap().to_owned());
 
     // Pick a new centroid with weighted probability of `D(x)^2 / sum(D(x)^2)`,
     // where `D(x)^2` is the distance to the closest centroid
@@ -35,7 +35,7 @@ pub fn init_plus_plus<C: crate::Calculate + Clone>(
         let mut sum = 0.0;
         for (b, dist) in buf.iter().zip(weights.iter_mut()) {
             let mut diff;
-            let mut min = core::f32::MAX;
+            let mut min = f32::MAX;
             for cent in centroids.iter() {
                 diff = C::difference(b, cent);
                 if diff < min {

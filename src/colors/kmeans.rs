@@ -18,7 +18,7 @@ where
         for color in lab.iter() {
             let mut index = 0;
             let mut diff;
-            let mut min = core::f32::MAX;
+            let mut min = f32::MAX;
             for (idx, cent) in centroids.iter().enumerate() {
                 diff = Self::difference(color, cent);
                 if diff < min {
@@ -68,9 +68,9 @@ where
     #[inline]
     fn create_random(rng: &mut impl Rng) -> Lab<Wp, T> {
         Lab::<Wp, T>::new(
-            T::from_f64(rng.gen_range(0.0..=100.0)).unwrap(),
-            T::from_f64(rng.gen_range(-128.0..=127.0)).unwrap(),
-            T::from_f64(rng.gen_range(-128.0..=127.0)).unwrap(),
+            T::from_f64(rng.random_range(0.0..=100.0)).unwrap(),
+            T::from_f64(rng.random_range(-128.0..=127.0)).unwrap(),
+            T::from_f64(rng.random_range(-128.0..=127.0)).unwrap(),
         )
     }
 
@@ -95,7 +95,7 @@ where
         for color in rgb.iter() {
             let mut index = 0;
             let mut diff;
-            let mut min = core::f32::MAX;
+            let mut min = f32::MAX;
             for (idx, cent) in centroids.iter().enumerate() {
                 diff = Self::difference(color, cent);
                 if diff < min {
@@ -145,9 +145,9 @@ where
     #[inline]
     fn create_random(rng: &mut impl Rng) -> Rgb<S, T> {
         Rgb::<S, T>::new(
-            T::from_f64(rng.gen_range(0.0..=1.0)).unwrap(),
-            T::from_f64(rng.gen_range(0.0..=1.0)).unwrap(),
-            T::from_f64(rng.gen_range(0.0..=1.0)).unwrap(),
+            T::from_f64(rng.random_range(0.0..=1.0)).unwrap(),
+            T::from_f64(rng.random_range(0.0..=1.0)).unwrap(),
+            T::from_f64(rng.random_range(0.0..=1.0)).unwrap(),
         )
     }
 
@@ -222,7 +222,7 @@ where
                 continue;
             }
 
-            let mut min1 = Self::difference(val, centers.centroids.get(0).unwrap());
+            let mut min1 = Self::difference(val, centers.centroids.first().unwrap());
             let mut min2 = f32::MAX;
             let mut c1 = 0;
             for j in 1..centers.centroids.len() {
@@ -355,7 +355,7 @@ where
                 continue;
             }
 
-            let mut min1 = Self::difference(val, centers.centroids.get(0).unwrap());
+            let mut min1 = Self::difference(val, centers.centroids.first().unwrap());
             let mut min2 = f32::MAX;
             let mut c1 = 0;
             for j in 1..centers.centroids.len() {
